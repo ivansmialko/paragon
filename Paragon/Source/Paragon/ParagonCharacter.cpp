@@ -4,6 +4,7 @@
 #include "ParagonCharacter.h"
 #include "Components/SceneComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Camera/CameraComponent.h"
 
 
 // Sets default values
@@ -18,6 +19,11 @@ AParagonCharacter::AParagonCharacter()
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength = 300.f; //The camera foollows at this distance behind the character
 	CameraBoom->bUsePawnControlRotation = true; //Rotate the arm based on the controller
+
+	//Create a follow camera
+	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
+	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);	//Attach camera to the end of boom
+	FollowCamera->bUsePawnControlRotation = false; //Camera does not rotate relative to arm
 }
 
 // Called when the game starts or when spawned
