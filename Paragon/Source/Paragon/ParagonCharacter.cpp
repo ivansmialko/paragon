@@ -5,6 +5,9 @@
 #include "Components/SceneComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 
 // Sets default values
@@ -26,6 +29,17 @@ AParagonCharacter::AParagonCharacter():
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);	//Attach camera to the end of boom
 	FollowCamera->bUsePawnControlRotation = false; //Camera does not rotate relative to arm
+
+	//Don't rotate mesh when the controller rotates. Let controller only rotate the camera
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
+
+	//Configure character movement
+	GetCharacterMovement()->bOrientRotationToMovement = true; //Character moves in the direction of input
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f); //.. at this rotation rate
+	GetCharacterMovement()->JumpZVelocity = 600.f;
+	GetCharacterMovement()->AirControl = 0.2f;
 }
 
 // Called when the game starts or when spawned
@@ -75,6 +89,14 @@ void AParagonCharacter::LookUpAtRate(float in_rate)
 	AddControllerPitchInput(in_rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds()); //deg/sec * sec/frame = deg/frame
 }
 
+void AParagonCharacter::FireWeapon()
+{
+	if (!FireSound)
+		return;
+
+	UGameplayStatics::PlaySound2D(GetWorld(), FireSound);
+}
+
 // Called every frame
 void AParagonCharacter::Tick(float DeltaTime)
 {
@@ -96,5 +118,8 @@ void AParagonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+
+	PlayerInputComponent->BindAction("FireButton", IE_Pressed, this, &AParagonCharacter::FireWeapon);
+
 }
 
