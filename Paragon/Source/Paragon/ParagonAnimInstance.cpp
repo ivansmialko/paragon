@@ -4,6 +4,7 @@
 #include "ParagonAnimInstance.h"
 #include "ParagonCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 void UParagonAnimInstance::UpdateAnimationProperties(float DeltaTime)
 {
@@ -25,6 +26,15 @@ void UParagonAnimInstance::UpdateAnimationProperties(float DeltaTime)
 
 	//Is the character is accelerating?
 	bIsAccelerating = (ParagonCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0);
+
+	FRotator AimRotation = ParagonCharacter->GetBaseAimRotation();
+	FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(ParagonCharacter->GetVelocity());
+
+	MovementOffset = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation).Yaw;
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::White, FString::Printf(TEXT("Movement offset: %f"), MovementOffset));
+	}
 }
 
 void UParagonAnimInstance::NativeInitializeAnimation()
