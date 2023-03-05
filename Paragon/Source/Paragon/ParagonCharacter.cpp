@@ -16,7 +16,10 @@
 // Sets default values
 AParagonCharacter::AParagonCharacter():
 	BaseTurnRate(45.f),
-	BaseLookUpRate(45.f)
+	BaseLookUpRate(45.f),
+	bIsAiming(false),
+	CameraDefaultFOV(0.f), //Setting this in begin play
+	CameraZoomFOV(60.f) 
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -51,6 +54,10 @@ void AParagonCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (!FollowCamera)
+		return;
+
+	CameraDefaultFOV = FollowCamera->FieldOfView;
 }
 
 void AParagonCharacter::MoveForward(float in_value)
@@ -207,6 +214,26 @@ bool AParagonCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, 
 	return true;
 }
 
+void AParagonCharacter::SetAimingButtonPressed()
+{
+	bIsAiming = true;
+
+	if (!FollowCamera)
+		return;
+
+	FollowCamera->SetFieldOfView(CameraZoomFOV);
+}
+
+void AParagonCharacter::SetAimingButtonReleased()
+{
+	bIsAiming = false;
+
+	if (!FollowCamera)
+		return;
+
+	FollowCamera->SetFieldOfView(CameraDefaultFOV);
+}
+
 // Called every frame
 void AParagonCharacter::Tick(float DeltaTime)
 {
@@ -230,6 +257,9 @@ void AParagonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	PlayerInputComponent->BindAction("FireButton", IE_Pressed, this, &AParagonCharacter::FireWeapon);
+
+	PlayerInputComponent->BindAction("AimingButton", IE_Pressed, this, &AParagonCharacter::SetAimingButtonPressed);
+	PlayerInputComponent->BindAction("AimingButton", IE_Released, this, &AParagonCharacter::SetAimingButtonReleased);
 
 }
 

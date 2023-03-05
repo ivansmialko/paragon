@@ -42,7 +42,23 @@ protected:
 	 */
 	void FireWeapon();
 
+
+	/**
+	 * Calculates impact point of a bullet, based on position of the muzzle and direction of the crosshair
+	 * @param MuzzleSocketLocation Location of gun's muzzle
+	 * @param OutBeamLocation Reference to a variable, used as output
+	 */
 	bool GetBeamEndLocation(const FVector& MuzzleSocketLocation, FVector& OutBeamLocation);
+
+	/**
+	 * Set bIsAminig to true with button pressed
+	 */
+	void SetAimingButtonPressed();
+
+	/**
+	* Set bIsAminig to true with button released
+	*/
+	void SetAimingButtonReleased();
 
 public:	
 	// Called every frame
@@ -90,8 +106,19 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	class UAnimMontage* FireRecoilMontage;
 
+	//Effect to call vibration on gamepad
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	class UForceFeedbackEffect* FeedbackFire;
+
+	//True when aiming
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	bool bIsAiming;
+
+	//Default camera field of view value
+	float CameraDefaultFOV;
+
+	//Zoomed-in field of view value
+	float CameraZoomFOV;	
 public:
 
 	//Return CameraBoom subobject
