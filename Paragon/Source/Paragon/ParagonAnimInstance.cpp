@@ -31,9 +31,10 @@ void UParagonAnimInstance::UpdateAnimationProperties(float DeltaTime)
 	FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(ParagonCharacter->GetVelocity());
 
 	MovementOffset = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation).Yaw;
-	if (GEngine)
+
+	if (ParagonCharacter->GetVelocity().Size() > 0.f)
 	{
-		GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::White, FString::Printf(TEXT("Movement offset: %f"), MovementOffset));
+		LastMovementOffset = MovementOffset;
 	}
 }
 
