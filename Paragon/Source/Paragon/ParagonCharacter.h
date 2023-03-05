@@ -90,7 +90,8 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	class UAnimMontage* FireRecoilMontage;
 
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	class UForceFeedbackEffect* FeedbackFire;
 public:
 
 	//Return CameraBoom subobject

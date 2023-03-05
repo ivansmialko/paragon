@@ -143,6 +143,15 @@ void AParagonCharacter::FireWeapon()
 
 	AnimInstance->Montage_Play(FireRecoilMontage);
 	AnimInstance->Montage_JumpToSection(FName("WeaponFire"));
+
+	if (!FeedbackFire)
+		return;
+
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (!PlayerController)
+		return;
+
+	PlayerController->ClientPlayForceFeedback(FeedbackFire, false, FName(TEXT("FeedbackFire")));
 }
 
 bool AParagonCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FVector& OutBeamLocation)
