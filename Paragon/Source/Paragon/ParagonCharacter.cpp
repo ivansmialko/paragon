@@ -14,12 +14,15 @@
 
 
 // Sets default values
-AParagonCharacter::AParagonCharacter():
+AParagonCharacter::AParagonCharacter() :
 	BaseTurnRate(45.f),
 	BaseLookUpRate(45.f),
 	bIsAiming(false),
 	CameraDefaultFOV(0.f), //Setting this in begin play
-	CameraZoomFOV(60.f) 
+	CameraZoomFOV(35.f),
+	CameraCurrentFOV(0.f),
+	ZoomInterpSpeed(20.f),
+	CameraOffset(FVector(0.f, 50.f, 70.f))
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -28,9 +31,8 @@ AParagonCharacter::AParagonCharacter():
 	//Create a camera boom (pulls in towards the character if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 300.f; //The camera foollows at this distance behind the character
+	CameraBoom->TargetArmLength = 180.f; //The camera foollows at this distance behind the character
 	CameraBoom->bUsePawnControlRotation = true; //Rotate the arm based on the controller
-	CameraBoom->SocketOffset = FVector(0.f, 50.f, 50.f);
 
 	//Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -57,7 +59,13 @@ void AParagonCharacter::BeginPlay()
 	if (!FollowCamera)
 		return;
 
+	if (!CameraBoom)
+		return;
+
 	CameraDefaultFOV = FollowCamera->FieldOfView;
+	CameraCurrentFOV = CameraDefaultFOV;
+
+	CameraBoom->SocketOffset = CameraOffset;
 }
 
 void AParagonCharacter::MoveForward(float in_value)
@@ -217,27 +225,21 @@ bool AParagonCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, 
 void AParagonCharacter::SetAimingButtonPressed()
 {
 	bIsAiming = true;
-
-	if (!FollowCamera)
-		return;
-
-	FollowCamera->SetFieldOfView(CameraZoomFOV);
 }
 
 void AParagonCharacter::SetAimingButtonReleased()
 {
 	bIsAiming = false;
-
-	if (!FollowCamera)
-		return;
-
-	FollowCamera->SetFieldOfView(CameraDefaultFOV);
 }
 
 // Called every frame
 void AParagonCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	//Set current camera field of view. Interpolate from default to zoomed FOV or backwards
+	CameraCurrentFOV = FMath::FInterpTo(CameraCurrentFOV, (bIsAiming? CameraZoomFOV : CameraDefaultFOV), DeltaTime, ZoomInterpSpeed);
+	FollowCamera->SetFieldOfView(CameraCurrentFOV);
 
 }
 

@@ -36,6 +36,8 @@ void UParagonAnimInstance::UpdateAnimationProperties(float DeltaTime)
 	{
 		LastMovementOffset = MovementOffset;
 	}
+
+	bIsAiming = ParagonCharacter->GetIsAiming();
 }
 
 void UParagonAnimInstance::NativeInitializeAnimation()

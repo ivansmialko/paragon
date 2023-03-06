@@ -111,14 +111,25 @@ private:
 	class UForceFeedbackEffect* FeedbackFire;
 
 	//True when aiming
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	bool bIsAiming;
 
 	//Default camera field of view value
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CombatCamera, meta = (AllowPrivateAccess = "true"))
 	float CameraDefaultFOV;
 
 	//Zoomed-in field of view value
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CombatCamera, meta = (AllowPrivateAccess = "true"))
 	float CameraZoomFOV;	
+
+	//Current field of view at this frame
+	float CameraCurrentFOV;
+
+	//Interp speed for zooming when aiming
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CombatCamera, meta = (AllowPrivateAccess = "true"))
+	float ZoomInterpSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CombatCamera, meta = (AllowPrivateAccess = "true"))
+	FVector CameraOffset;
 public:
 
 	//Return CameraBoom subobject
@@ -127,5 +138,7 @@ public:
 	//Returns FollowCamera subobject
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; };
 
+	//Returns bIsAiming
+	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
 
 };
