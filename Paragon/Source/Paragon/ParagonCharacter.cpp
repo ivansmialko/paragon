@@ -15,14 +15,31 @@
 
 // Sets default values
 AParagonCharacter::AParagonCharacter() :
+	//Base rates for turning/looking up
 	BaseTurnRate(45.f),
 	BaseLookUpRate(45.f),
+	//Aiming/not aiming controller sensitivity
+	HipTurnRate(90.f),
+	HipLookUpRate(90.f),
+	AimingTurnRate(20.f),
+	AimingLookUpRate(20.f),
+	//Aiming/not aiming mouse sensitivity
+	MouseHipTurnRate(1.0f),
+	MouseHipLookUpRate(1.0f),
+	MouseAimingTurnRate(0.2f),
+	MouseAimingLookUpRate(0.2f),
 	bIsAiming(false),
+	//Combat camera settings
 	CameraDefaultFOV(0.f), //Setting this in begin play
 	CameraZoomFOV(35.f),
 	CameraCurrentFOV(0.f),
 	ZoomInterpSpeed(20.f),
-	CameraOffset(FVector(0.f, 50.f, 70.f))
+	CameraOffset(FVector(0.f, 50.f, 70.f)),
+	//Crosshair spread settings
+	CrosshairSpreadMultiplier(0.f),
+	CrosshairVelocityScaleFactor(0.f),
+	CrosshairInAirScaleFactor(0.f),
+	CrosshairAimScaleFactor(0.f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -106,6 +123,37 @@ void AParagonCharacter::LookUpAtRate(float in_rate)
 {
 	//Calculate delta for current frame based on rate information
 	AddControllerPitchInput(in_rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds()); //deg/sec * sec/frame = deg/frame
+}
+
+void AParagonCharacter::Turn(float Value)
+{
+	float TurnScaleFactor = 1.f;
+
+	if (bIsAiming)
+	{
+		TurnScaleFactor = MouseAimingTurnRate;
+	}
+	else
+	{
+		TurnScaleFactor = MouseHipTurnRate;
+	}
+	AddControllerYawInput(Value * TurnScaleFactor);
+}
+
+void AParagonCharacter::LookUp(float Value)
+{
+	float LookUpScaleFactor = 1.f;
+
+	if (bIsAiming)
+	{
+		LookUpScaleFactor = MouseAimingLookUpRate;
+	}
+	else
+	{
+		LookUpScaleFactor = MouseHipLookUpRate;
+	}
+
+	AddControllerPitchInput(Value * LookUpScaleFactor);
 }
 
 void AParagonCharacter::FireWeapon()
@@ -232,15 +280,76 @@ void AParagonCharacter::SetAimingButtonReleased()
 	bIsAiming = false;
 }
 
+void AParagonCharacter::ZoomCameraInterp(float DeltaTime)
+{
+	//Set current camera field of view. Interpolate from default to zoomed FOV or backwards
+	CameraCurrentFOV = FMath::FInterpTo(CameraCurrentFOV, (bIsAiming ? CameraZoomFOV : CameraDefaultFOV), DeltaTime, ZoomInterpSpeed);
+	FollowCamera->SetFieldOfView(CameraCurrentFOV);
+}
+
+void AParagonCharacter::UpdateLookRates()
+{
+	//Change look sensitivity based on aiming or not
+	if (bIsAiming)
+	{
+		BaseTurnRate = AimingTurnRate;
+		BaseLookUpRate = AimingLookUpRate;
+	}
+	else
+	{
+		BaseTurnRate = HipTurnRate;
+		BaseLookUpRate = HipLookUpRate;
+	}
+}
+
+void AParagonCharacter::UpdateCrosshairSpread(float DeltaTime)
+{
+	FVector2D WalkSpeedRange{ 0.f, GetCharacterMovement()->MaxWalkSpeed };
+	FVector2D VelocityMultiplierRange{ 0.f, 1.f };
+
+	FVector CurrentVelocity(GetVelocity());
+	CurrentVelocity.Z = 0.f;
+
+	//Calculate crosshair velocity factor
+	CrosshairVelocityScaleFactor = FMath::GetMappedRangeValueClamped(WalkSpeedRange, VelocityMultiplierRange, CurrentVelocity.Size());
+
+	//Calculate crosshair in air factor
+	if (GetCharacterMovement()->IsFalling())
+	{
+		//Spread the crosshairs slowly while in air
+		CrosshairInAirScaleFactor = FMath::FInterpTo(CrosshairInAirScaleFactor, 2.25f, DeltaTime, 2.25f);
+	}
+	else
+	{	
+		//Shrink the crosshairs radiply when on the ground
+		CrosshairInAirScaleFactor = FMath::FInterpTo(CrosshairInAirScaleFactor, 0.f, DeltaTime, 30.f);
+	}
+
+	//Calculate crosshair aiming factor
+	if (bIsAiming)
+	{
+		//Shrink the crosshairs slowly while aiming
+		CrosshairAimScaleFactor = FMath::FInterpTo(CrosshairAimScaleFactor, -0.5f, DeltaTime, 5.f);
+	}
+	else
+	{
+		//Spread the crosshairs rapidly when not aiming
+		CrosshairAimScaleFactor = FMath::FInterpTo(CrosshairAimScaleFactor, 0.f, DeltaTime, 30.f);
+	}
+
+	CrosshairSpreadMultiplier = 0.5f + CrosshairVelocityScaleFactor + CrosshairInAirScaleFactor + CrosshairAimScaleFactor;
+
+	GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::White, FString::Printf(TEXT("Current crosshair spread: %f"), CrosshairSpreadMultiplier));
+}
+
 // Called every frame
 void AParagonCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//Set current camera field of view. Interpolate from default to zoomed FOV or backwards
-	CameraCurrentFOV = FMath::FInterpTo(CameraCurrentFOV, (bIsAiming? CameraZoomFOV : CameraDefaultFOV), DeltaTime, ZoomInterpSpeed);
-	FollowCamera->SetFieldOfView(CameraCurrentFOV);
-
+	ZoomCameraInterp(DeltaTime);
+	UpdateLookRates();
+	UpdateCrosshairSpread(DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -254,6 +363,9 @@ void AParagonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAxis("TurnRate", this, &AParagonCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AParagonCharacter::LookUpAtRate);
+
+	PlayerInputComponent->BindAxis("Turn", this, &AParagonCharacter::Turn);
+	PlayerInputComponent->BindAxis("LookUp", this, &AParagonCharacter::LookUp);
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);

@@ -38,6 +38,18 @@ protected:
 	void LookUpAtRate(float in_rate);
 
 	/**
+	 * Rotate controller based on mouse X movement
+	 * @param Value Input axis value
+	 */
+	void Turn(float Value);
+
+	/**
+	 * Rotate controller based on mouse Y movement
+	 * @param Value Input axis value
+	 */
+	void LookUp(float Value);
+
+	/**
 	 * Called when the "Fire" button is pressed
 	 */
 	void FireWeapon();
@@ -60,6 +72,23 @@ protected:
 	*/
 	void SetAimingButtonReleased();
 
+	/**
+	 * Smoothly zoom in / zoom out camera when aiming
+	 * @param DeltaTime Delta time from Tick() function
+	 */
+	void ZoomCameraInterp(float DeltaTime);
+
+	/**
+	 * Set turn/look up rates based on aiming or not
+	 */
+	void UpdateLookRates();
+
+	/**
+	 * Calculate the spread of the crosshairs
+	 * @param DeltaTime Delta time from Tick() function
+	 */
+	void UpdateCrosshairSpread(float DeltaTime);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -79,12 +108,44 @@ private:
 	class UCameraComponent* FollowCamera;	
 
 	//Base turn rate in deg/sec. Other scaling  may affect final turn rate
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	float BaseTurnRate;
 
 	//Base look up/down rate, in deg/sec. Other scaling may affect final turn rate
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	float BaseLookUpRate;
+
+	//Controller turn sensitivity while not aiming
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	float HipTurnRate;
+
+	//Controller lookup sensitivity while not aiming
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	float HipLookUpRate;
+
+	//Controller turn sensitivity while aiming
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	float AimingTurnRate;
+
+	//Controller look up rate while aiming
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	float AimingLookUpRate;
+
+	//Mouse turn sensitivity while not aiming
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"), meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
+	float MouseHipTurnRate;
+
+	//Mouse look up sensitivity while not aiming
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"), meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
+	float MouseHipLookUpRate;
+
+	//Mouse turn sensitivity while aiming
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"), meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
+	float MouseAimingTurnRate;
+
+	//Mouse look up sensitivity while aiming
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"), meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
+	float MouseAimingLookUpRate;
 
 	//Randomized gunshot sound cue
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
@@ -130,6 +191,26 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CombatCamera, meta = (AllowPrivateAccess = "true"))
 	FVector CameraOffset;
+
+	//Determines the spread of the crosshairs
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Crosshairs, meta = (AllowPrivateAccess = "true"))
+	float CrosshairSpreadMultiplier;
+
+	//Velocity component for crosshairs spread
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Crosshairs, meta = (AllowPrivateAccess = "true"))
+	float CrosshairVelocityScaleFactor;
+
+	//In-air component for crosshairs spread
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Crosshairs, meta = (AllowPrivateAccess = "true"))
+	float CrosshairInAirScaleFactor;
+
+	//Aim component for crosshairs spread
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Crosshairs, meta = (AllowPrivateAccess = "true"))
+	float CrosshairAimScaleFactor;
+
+	//Shooting component for crosshairs spread
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Crosshairs, meta = (AllowPrivateAccess = "true"))
+	float CrosshairShootingFactor;
 public:
 
 	//Return CameraBoom subobject
@@ -140,5 +221,8 @@ public:
 
 	//Returns bIsAiming
 	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
+
+	UFUNCTION(BlueprintCallable)
+	float GetCrosshairSpreadMultiplier() const { return CrosshairSpreadMultiplier; };
 
 };
