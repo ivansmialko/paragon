@@ -39,7 +39,10 @@ AParagonCharacter::AParagonCharacter() :
 	CrosshairSpreadMultiplier(0.f),
 	CrosshairVelocityScaleFactor(0.f),
 	CrosshairInAirScaleFactor(0.f),
-	CrosshairAimScaleFactor(0.f)
+	CrosshairAimScaleFactor(0.f),
+	//Bullet fire timer
+	ShootTimerDuration(0.05f),
+	bIsFiringBullet(false)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -215,6 +218,9 @@ void AParagonCharacter::FireWeapon()
 		return;
 
 	PlayerController->ClientPlayForceFeedback(FeedbackFire, false, FName(TEXT("FeedbackFire")));
+
+	//Start bullet fire timer for crosshairs
+	StartCrosshairBulletFire();
 }
 
 bool AParagonCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FVector& OutBeamLocation)
@@ -227,7 +233,7 @@ bool AParagonCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, 
 	GEngine->GameViewport->GetViewportSize(ViewportSize);
 
 	//Get screen-space location of crosshair
-	FVector2D CrosshairLocation(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f - 50.f);
+	FVector2D CrosshairLocation(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f);
 
 	//Get world position and direction 
 	FVector CrosshairWorldPosition;
@@ -337,9 +343,30 @@ void AParagonCharacter::UpdateCrosshairSpread(float DeltaTime)
 		CrosshairAimScaleFactor = FMath::FInterpTo(CrosshairAimScaleFactor, 0.f, DeltaTime, 30.f);
 	}
 
-	CrosshairSpreadMultiplier = 0.5f + CrosshairVelocityScaleFactor + CrosshairInAirScaleFactor + CrosshairAimScaleFactor;
+	//True 0.05 seconds after firing
+	if (bIsFiringBullet)
+	{
+		CrosshairShootingFactor = FMath::FInterpTo(CrosshairShootingFactor, 0.3f, DeltaTime, 60.f);
+	}
+	else
+	{
+		CrosshairShootingFactor = FMath::FInterpTo(CrosshairShootingFactor, 0.0f, DeltaTime, 10.f);
+	}
+
+	CrosshairSpreadMultiplier = 0.5f + CrosshairVelocityScaleFactor + CrosshairInAirScaleFactor + CrosshairAimScaleFactor + CrosshairShootingFactor;
 
 	GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::White, FString::Printf(TEXT("Current crosshair spread: %f"), CrosshairSpreadMultiplier));
+}
+
+void AParagonCharacter::StartCrosshairBulletFire()
+{
+	bIsFiringBullet = true;
+	GetWorldTimerManager().SetTimer(CrosshairShootTimer, this, &AParagonCharacter::FinishCrosshairBulletFire, ShootTimerDuration);
+}
+
+void AParagonCharacter::FinishCrosshairBulletFire()
+{
+	bIsFiringBullet = false;
 }
 
 // Called every frame
