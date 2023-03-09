@@ -94,6 +94,27 @@ protected:
 	UFUNCTION()
 	void FinishCrosshairBulletFire();
 
+	/**
+	 * Sets bIsFireButtonPressed to true, to begin firing
+	 */ 
+	void FireButtonPressed();
+
+	/**
+	 * Sets bIsFireButtonPressed to stop firing
+	 */ 
+	void FireButtonReleased();
+
+	/**
+	 * Start timer for automatic firing
+	 */
+	void StartFireTimer();
+
+	/**
+	 * Allows to fire next bullet, called when fire-rate delay is ended
+	 */
+	UFUNCTION()
+	void AutoFireReset();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -222,6 +243,19 @@ private:
 	bool bIsFiringBullet;
 
 	FTimerHandle CrosshairShootTimer;
+
+	//Fire button pressed
+	bool bIsFireButtonPressed;
+
+	//True when we can fire, false when waiting for timer
+	bool bIsShouldFireAtThisFrame;
+
+	//Rate of automatic gun fire
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	float AutomaticFireRate;
+
+	//Sets a timer between gunshots
+	FTimerHandle AutoFireTimer;
 public:
 
 	//Return CameraBoom subobject
@@ -233,6 +267,7 @@ public:
 	//Returns bIsAiming
 	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
 
+	//Get spread to render crosshairs accordingly
 	UFUNCTION(BlueprintCallable)
 	float GetCrosshairSpreadMultiplier() const { return CrosshairSpreadMultiplier; };
 

@@ -42,7 +42,11 @@ AParagonCharacter::AParagonCharacter() :
 	CrosshairAimScaleFactor(0.f),
 	//Bullet fire timer
 	ShootTimerDuration(0.05f),
-	bIsFiringBullet(false)
+	bIsFiringBullet(false),
+	//Automatic gun fire settings
+	AutomaticFireRate(0.1f),
+	bIsFireButtonPressed(false),
+	bIsShouldFireAtThisFrame(true)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -87,8 +91,6 @@ void AParagonCharacter::BeginPlay()
 	CameraCurrentFOV = CameraDefaultFOV;
 
 	CameraBoom->SocketOffset = CameraOffset;
-
-	UGameplayStatics::GetPlayerController(GetWorld(), 0)->bShowMouseCursor = true;
 }
 
 void AParagonCharacter::MoveForward(float in_value)
@@ -372,6 +374,40 @@ void AParagonCharacter::FinishCrosshairBulletFire()
 	bIsFiringBullet = false;
 }
 
+void AParagonCharacter::FireButtonPressed()
+{
+	bIsFireButtonPressed = true;
+	StartFireTimer();
+}
+
+void AParagonCharacter::FireButtonReleased()
+{
+	bIsFireButtonPressed = false;
+}
+
+void AParagonCharacter::StartFireTimer()
+{
+	if (!bIsShouldFireAtThisFrame)
+		return;
+
+	FireWeapon();
+	bIsShouldFireAtThisFrame = false;
+
+	//Timer to wait for a new bullet to fire
+	GetWorldTimerManager().SetTimer(AutoFireTimer, this, &AParagonCharacter::AutoFireReset, AutomaticFireRate);
+}
+
+void AParagonCharacter::AutoFireReset()
+{
+	bIsShouldFireAtThisFrame = true;
+
+	if (!bIsFireButtonPressed)
+		return;
+
+	//If fire button still pressed - fire another bullet
+	StartFireTimer();
+}
+
 // Called every frame
 void AParagonCharacter::Tick(float DeltaTime)
 {
@@ -400,7 +436,8 @@ void AParagonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
-	PlayerInputComponent->BindAction("FireButton", IE_Pressed, this, &AParagonCharacter::FireWeapon);
+	PlayerInputComponent->BindAction("FireButton", IE_Pressed, this, &AParagonCharacter::FireButtonPressed);
+	PlayerInputComponent->BindAction("FireButton", IE_Released, this, &AParagonCharacter::FireButtonReleased);
 
 	PlayerInputComponent->BindAction("AimingButton", IE_Pressed, this, &AParagonCharacter::SetAimingButtonPressed);
 	PlayerInputComponent->BindAction("AimingButton", IE_Released, this, &AParagonCharacter::SetAimingButtonReleased);
