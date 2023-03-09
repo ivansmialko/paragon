@@ -236,4 +236,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	float GetCrosshairSpreadMultiplier() const { return CrosshairSpreadMultiplier; };
 
+	UFUNCTION(BlueprintCallable)
+	void FireEvent();
+
+	UFUNCTION(BlueprintCallable)
+	void JumpEvent();
+
+	UFUNCTION(BlueprintCallable)
+	void AimEvent();
 };

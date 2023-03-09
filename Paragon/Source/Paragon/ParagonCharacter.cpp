@@ -69,6 +69,7 @@ AParagonCharacter::AParagonCharacter() :
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f); //.. at this rotation rate
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.2f;
+
 }
 
 // Called when the game starts or when spawned
@@ -86,6 +87,8 @@ void AParagonCharacter::BeginPlay()
 	CameraCurrentFOV = CameraDefaultFOV;
 
 	CameraBoom->SocketOffset = CameraOffset;
+
+	UGameplayStatics::GetPlayerController(GetWorld(), 0)->bShowMouseCursor = true;
 }
 
 void AParagonCharacter::MoveForward(float in_value)
@@ -402,5 +405,27 @@ void AParagonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("AimingButton", IE_Pressed, this, &AParagonCharacter::SetAimingButtonPressed);
 	PlayerInputComponent->BindAction("AimingButton", IE_Released, this, &AParagonCharacter::SetAimingButtonReleased);
 
+}
+
+void AParagonCharacter::FireEvent()
+{
+	FireWeapon();
+}
+
+void AParagonCharacter::JumpEvent()
+{
+	Jump();
+}
+
+void AParagonCharacter::AimEvent()
+{
+	if (bIsAiming)
+	{
+		SetAimingButtonReleased();
+	}
+	else
+	{
+		SetAimingButtonPressed();
+	}
 }
 
