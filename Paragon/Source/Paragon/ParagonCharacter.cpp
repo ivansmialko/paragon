@@ -91,6 +91,8 @@ void AParagonCharacter::BeginPlay()
 	CameraCurrentFOV = CameraDefaultFOV;
 
 	CameraBoom->SocketOffset = CameraOffset;
+
+	//UGameplayStatics::GetPlayerController(GetWorld(), 0)->bShowMouseCursor = true;
 }
 
 void AParagonCharacter::MoveForward(float in_value)
@@ -444,7 +446,17 @@ void AParagonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 }
 
-void AParagonCharacter::FireEvent()
+void AParagonCharacter::FireBeginEvent()
+{
+	FireButtonPressed();
+}
+
+void AParagonCharacter::FireEndEvent()
+{
+	FireButtonReleased();
+}
+
+void AParagonCharacter::FireSingleEvent()
 {
 	FireWeapon();
 }
