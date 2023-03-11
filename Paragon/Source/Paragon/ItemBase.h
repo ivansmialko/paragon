@@ -33,7 +33,9 @@ private:
 	class UBoxComponent* CollisionBox;
 
 	//Pop-up widget for when the player looks at the item
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
-	class UWidgetComponent* PickupWidget;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	class UWidgetComponent* PickupInfoWidget;
+
 public:
+	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupInfoWidget; }
 };

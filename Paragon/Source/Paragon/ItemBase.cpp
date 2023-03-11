@@ -16,9 +16,11 @@ AItemBase::AItemBase()
 
 	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
 	CollisionBox->SetupAttachment(ItemMesh);
+	CollisionBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	CollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 
-	PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickUpWidget"));
-	PickupWidget->SetupAttachment(RootComponent);
+	PickupInfoWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickUpWidget"));
+	PickupInfoWidget->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -26,6 +28,11 @@ void AItemBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	//Hide pick up widget by default
+	if (!PickupInfoWidget)
+		return;
+
+	PickupInfoWidget->SetVisibility(false);
 }
 
 // Called every frame

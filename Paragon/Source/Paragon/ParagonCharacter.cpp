@@ -11,6 +11,9 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "DrawDebugHelpers.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "ItemBase.h"
+#include "Components/WidgetComponent.h"
+
 
 
 // Sets default values
@@ -278,8 +281,6 @@ bool AParagonCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, 
 		OutBeamLocation = WeaponTraceHit.Location;
 	}
 
-	
-
 	return true;
 }
 
@@ -410,6 +411,37 @@ void AParagonCharacter::AutoFireReset()
 	StartFireTimer();
 }
 
+bool AParagonCharacter::TraceUnderCrosshairs(FHitResult& OutHitResult)
+{
+	//Get viewport size
+	if (!GEngine || !GEngine->GameViewport)
+		return false;
+
+	//Get current size of the viewport
+	FVector2D ViewportSize;
+	GEngine->GameViewport->GetViewportSize(ViewportSize);
+
+	//Get screen-space location of crosshair
+	FVector2D CrosshairLocation(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f);
+
+	//Get world position and direction 
+	FVector CrosshairWorldPosition;
+	FVector CrosshairWorldDirection;
+	bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(UGameplayStatics::GetPlayerController(this, 0), CrosshairLocation,
+		CrosshairWorldPosition, CrosshairWorldDirection);
+
+	//Was deprojection successfull?
+	if (!bScreenToWorld)
+		return false;
+
+	FHitResult ScreenTraceHit;
+	const FVector LineStart{ CrosshairWorldPosition };
+	const FVector LineEnd{ CrosshairWorldPosition + CrosshairWorldDirection * 5'000.f };
+	GetWorld()->LineTraceSingleByChannel(OutHitResult, LineStart, LineEnd, ECollisionChannel::ECC_Visibility);
+
+	return OutHitResult.bBlockingHit;
+}
+
 // Called every frame
 void AParagonCharacter::Tick(float DeltaTime)
 {
@@ -418,6 +450,17 @@ void AParagonCharacter::Tick(float DeltaTime)
 	ZoomCameraInterp(DeltaTime);
 	UpdateLookRates();
 	UpdateCrosshairSpread(DeltaTime);
+
+	FHitResult ItemTraceResult;
+	if (TraceUnderCrosshairs(ItemTraceResult))
+	{
+		AItemBase* HitItem = Cast<AItemBase>(ItemTraceResult.Actor);
+		if (HitItem && HitItem->GetPickupWidget())
+		{
+			//Shot Item's pick up widget
+			HitItem->GetPickupWidget()->SetVisibility(true);
+		}
+	}
 }
 
 // Called to bind functionality to input

@@ -115,6 +115,12 @@ protected:
 	UFUNCTION()
 	void AutoFireReset();
 
+	/**
+	 * Linetrace for items under the crosshairs
+	 * @param OutHitResult Reference to variable with the result of line trace hit
+	 */
+	bool TraceUnderCrosshairs(FHitResult& OutHitResult);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
