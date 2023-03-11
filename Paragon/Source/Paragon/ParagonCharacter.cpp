@@ -49,7 +49,10 @@ AParagonCharacter::AParagonCharacter() :
 	//Automatic gun fire settings
 	AutomaticFireRate(0.1f),
 	bIsFireButtonPressed(false),
-	bIsShouldFireAtThisFrame(true)
+	bIsShouldFireAtThisFrame(true),
+	//Item trace variables
+	bIsShouldTraceForItems(false),
+	TraceHitLastFrame(nullptr)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -430,14 +433,17 @@ bool AParagonCharacter::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& 
 	return OutHitResult.bBlockingHit;
 }
 
-// Called every frame
-void AParagonCharacter::Tick(float DeltaTime)
+void AParagonCharacter::TraceForItems()
 {
-	Super::Tick(DeltaTime);
+	if (!bIsShouldTraceForItems)
+	{
+		if (TraceHitLastFrame)
+		{
+			TraceHitLastFrame->GetPickupWidget()->SetVisibility(false);
+		}
 
-	ZoomCameraInterp(DeltaTime);
-	UpdateLookRates();
-	UpdateCrosshairSpread(DeltaTime);
+		return;
+	}
 
 	FHitResult ItemTraceResult;
 	FVector HitLocation;
@@ -449,7 +455,27 @@ void AParagonCharacter::Tick(float DeltaTime)
 			//Shot Item's pick up widget
 			HitItem->GetPickupWidget()->SetVisibility(true);
 		}
+		
+		//We hit an AItemBase last frame
+		if (TraceHitLastFrame && (TraceHitLastFrame != HitItem))
+		{
+			//We are hitting a different AItemBase this frame from last frame
+			TraceHitLastFrame->GetPickupWidget()->SetVisibility(false);
+		}
+
+		TraceHitLastFrame = HitItem;
 	}
+}
+
+// Called every frame
+void AParagonCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	ZoomCameraInterp(DeltaTime);
+	UpdateLookRates();
+	UpdateCrosshairSpread(DeltaTime);
+	TraceForItems();
 }
 
 // Called to bind functionality to input
@@ -507,6 +533,20 @@ void AParagonCharacter::AimEvent()
 	else
 	{
 		SetAimingButtonPressed();
+	}
+}
+
+void AParagonCharacter::ChangeOverlappedItemCount(int8 Amount)
+{
+	if (OverlappedItemCount + Amount <= 0)
+	{
+		OverlappedItemCount = 0;
+		bIsShouldTraceForItems = false;
+	}
+	else
+	{
+		OverlappedItemCount += Amount;
+		bIsShouldTraceForItems = true;
 	}
 }
 

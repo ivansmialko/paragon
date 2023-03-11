@@ -116,10 +116,15 @@ protected:
 	void AutoFireReset();
 
 	/**
-	 * Linetrace for items under the crosshairs
+	 * Line trace for items under the crosshairs
 	 * @param OutHitResult Reference to variable with the result of line trace hit
 	 */
 	bool TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& OutHitLocation);
+
+	/**
+	 * Tracing for items to set their widgets visibility to true if trace is successful
+	 */
+	void TraceForItems();
 
 public:	
 	// Called every frame
@@ -262,6 +267,16 @@ private:
 
 	//Sets a timer between gunshots
 	FTimerHandle AutoFireTimer;
+
+	//True if we should trace every frame for items
+	bool bIsShouldTraceForItems;
+
+	//Number of overlapped AItemBase items
+	int8 OverlappedItemCount;
+
+	//Item that player is currently focused on
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
+	class AItemBase* TraceHitLastFrame;
 public:
 
 	//Return CameraBoom subobject
@@ -291,4 +306,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void AimEvent();
+
+	FORCEINLINE int8 GetOverlappedItemCount() const { return OverlappedItemCount; }
+
+	//Adds/subtracts to/from OverlappedItemCount and updates bShouldTraceForItems
+	void ChangeOverlappedItemCount(int8 Amount);
 };

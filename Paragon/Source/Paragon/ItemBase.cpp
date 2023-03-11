@@ -4,6 +4,8 @@
 #include "ItemBase.h"
 #include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Components/SphereComponent.h"	
+#include "ParagonCharacter.h"
 
 // Sets default values
 AItemBase::AItemBase()
@@ -21,6 +23,9 @@ AItemBase::AItemBase()
 
 	PickupInfoWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickUpWidget"));
 	PickupInfoWidget->SetupAttachment(RootComponent);
+
+	AreaSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AreaSphere"));
+	AreaSphere->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -33,6 +38,38 @@ void AItemBase::BeginPlay()
 		return;
 
 	PickupInfoWidget->SetVisibility(false);
+
+	//Setup overlap for AreaSphere
+	AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AItemBase::OnSphereBeginOverlap);
+	AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AItemBase::OnSphereEndOverlap);
+}
+
+void AItemBase::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent,
+	AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex,
+	bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!OtherActor)
+		return;
+
+	AParagonCharacter* ParagonCharacter = Cast<AParagonCharacter>(OtherActor);
+	if (!ParagonCharacter)
+		return;
+
+	ParagonCharacter->ChangeOverlappedItemCount(1);
+
+}
+
+void AItemBase::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent,
+	AActor* OtherActor, UPrimitiveComponent* OtherComponent,int32 OtherBodyIndex)
+{
+	if (!OtherActor)
+		return;
+
+	AParagonCharacter* ParagonCharacter = Cast<AParagonCharacter>(OtherActor);
+	if (!ParagonCharacter)
+		return;
+
+	ParagonCharacter->ChangeOverlappedItemCount(-1);
 }
 
 // Called every frame
