@@ -235,53 +235,34 @@ void AParagonCharacter::FireWeapon()
 
 bool AParagonCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FVector& OutBeamLocation)
 {
-	if (!GEngine || !GEngine->GameViewport)
-		return false;
+	//Check for crosshair trace hit
+	FHitResult CrosshairHitResult;
+	bool bCrosshairHit = TraceUnderCrosshairs(CrosshairHitResult, OutBeamLocation);
 
-	//Get current size of the viewport
-	FVector2D ViewportSize;
-	GEngine->GameViewport->GetViewportSize(ViewportSize);
-
-	//Get screen-space location of crosshair
-	FVector2D CrosshairLocation(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f);
-
-	//Get world position and direction 
-	FVector CrosshairWorldPosition;
-	FVector CrosshairWorldDirection;
-	bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(UGameplayStatics::GetPlayerController(this, 0), CrosshairLocation,
-		CrosshairWorldPosition, CrosshairWorldDirection);
-
-	//Was deprojection successfull?
-	if (!bScreenToWorld)
-		return false;
-
-	FHitResult ScreenTraceHit;
-	const FVector LineStart{ CrosshairWorldPosition };
-	const FVector LineEnd{ CrosshairWorldPosition + CrosshairWorldDirection * 5'000.f };
-
-	//Set beam end point to linetrace end point
-	OutBeamLocation = LineEnd;
-
-	//Trace outwards from crosshairs world location
-	GetWorld()->LineTraceSingleByChannel(ScreenTraceHit, LineStart, LineEnd, ECollisionChannel::ECC_Visibility);
-	if (ScreenTraceHit.bBlockingHit) //was there a trace hit?
+	if (bCrosshairHit) {
+		//Tentatice beam location - still need to trace from gun
+		OutBeamLocation = CrosshairHitResult.Location;
+	}
+	else //No crosshairs hit
 	{
-		OutBeamLocation = ScreenTraceHit.Location;
+		//Out beam location is the End location for the line trace
 	}
 
 	//Perform a second trace, this time from the gun barrel
 	FHitResult WeaponTraceHit;
 	const FVector WeaponTraceStart{ MuzzleSocketLocation };
-	const FVector WeaponTraceEnd{ OutBeamLocation };
+	const FVector StartToEnd{ OutBeamLocation - MuzzleSocketLocation };
+	const FVector WeaponTraceEnd{ MuzzleSocketLocation + StartToEnd * 1.25f };
 
 	//Object between barrel and beam endpoint
 	GetWorld()->LineTraceSingleByChannel(WeaponTraceHit, WeaponTraceStart, WeaponTraceEnd, ECollisionChannel::ECC_Visibility);
 	if (WeaponTraceHit.bBlockingHit)
 	{
 		OutBeamLocation = WeaponTraceHit.Location;
+		return true;
 	}
 
-	return true;
+	return false;
 }
 
 void AParagonCharacter::SetAimingButtonPressed()
@@ -411,7 +392,7 @@ void AParagonCharacter::AutoFireReset()
 	StartFireTimer();
 }
 
-bool AParagonCharacter::TraceUnderCrosshairs(FHitResult& OutHitResult)
+bool AParagonCharacter::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& OutHitLocation)
 {
 	//Get viewport size
 	if (!GEngine || !GEngine->GameViewport)
@@ -437,7 +418,14 @@ bool AParagonCharacter::TraceUnderCrosshairs(FHitResult& OutHitResult)
 	FHitResult ScreenTraceHit;
 	const FVector LineStart{ CrosshairWorldPosition };
 	const FVector LineEnd{ CrosshairWorldPosition + CrosshairWorldDirection * 5'000.f };
+	OutHitLocation = LineEnd;
+
 	GetWorld()->LineTraceSingleByChannel(OutHitResult, LineStart, LineEnd, ECollisionChannel::ECC_Visibility);
+
+	if (OutHitResult.bBlockingHit)
+	{
+		OutHitLocation = OutHitResult.Location;
+	}
 
 	return OutHitResult.bBlockingHit;
 }
@@ -452,7 +440,8 @@ void AParagonCharacter::Tick(float DeltaTime)
 	UpdateCrosshairSpread(DeltaTime);
 
 	FHitResult ItemTraceResult;
-	if (TraceUnderCrosshairs(ItemTraceResult))
+	FVector HitLocation;
+	if (TraceUnderCrosshairs(ItemTraceResult, HitLocation))
 	{
 		AItemBase* HitItem = Cast<AItemBase>(ItemTraceResult.Actor);
 		if (HitItem && HitItem->GetPickupWidget())

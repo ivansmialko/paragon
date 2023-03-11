@@ -119,7 +119,7 @@ protected:
 	 * Linetrace for items under the crosshairs
 	 * @param OutHitResult Reference to variable with the result of line trace hit
 	 */
-	bool TraceUnderCrosshairs(FHitResult& OutHitResult);
+	bool TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& OutHitLocation);
 
 public:	
 	// Called every frame
