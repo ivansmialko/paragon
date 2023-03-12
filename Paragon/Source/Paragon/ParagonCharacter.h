@@ -126,6 +126,17 @@ protected:
 	 */
 	void TraceForItems();
 
+	/**
+	 * Spawns default weapon and equips it
+	 */
+	class AWeapon* SpawnDefaultWeapon();
+
+	/**
+	 * Takes a weapon and attaches it to the mesh
+	 * @param WeaponToEquip Self explanatory
+	 */
+	void EquipWeapon(AWeapon* WeaponToEquip);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -277,6 +288,14 @@ private:
 	//Item that player is currently focused on
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
 	class AItemBase* TraceHitLastFrame;
+
+	//Currently equipped weapon
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	AWeapon* EquippedWeapon;
+
+	//Set this in blueprints for the default Weapon class
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AWeapon> DefaultWeaponClass;
 public:
 
 	//Return CameraBoom subobject

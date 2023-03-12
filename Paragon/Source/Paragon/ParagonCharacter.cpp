@@ -2,17 +2,24 @@
 
 
 #include "ParagonCharacter.h"
-#include "Components/SceneComponent.h"
+
 #include "GameFramework/SpringArmComponent.h"
-#include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+
+#include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystemComponent.h"
 #include "Sound/SoundCue.h"
 #include "Engine/SkeletalMeshSocket.h"
-#include "DrawDebugHelpers.h"
-#include "Particles/ParticleSystemComponent.h"
-#include "ItemBase.h"
+
+#include "Components/SceneComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Components/SphereComponent.h"
+#include "Components/BoxComponent.h"
+
+#include "DrawDebugHelpers.h"
+#include "ItemBase.h"
+#include "Weapon.h"
 
 
 
@@ -95,8 +102,10 @@ void AParagonCharacter::BeginPlay()
 
 	CameraDefaultFOV = FollowCamera->FieldOfView;
 	CameraCurrentFOV = CameraDefaultFOV;
-
 	CameraBoom->SocketOffset = CameraOffset;
+
+	//Spawn and equip the default weapon and attach it to the mesh
+	EquipWeapon(SpawnDefaultWeapon());
 
 	//UGameplayStatics::GetPlayerController(GetWorld(), 0)->bShowMouseCursor = true;
 }
@@ -465,6 +474,36 @@ void AParagonCharacter::TraceForItems()
 
 		TraceHitLastFrame = HitItem;
 	}
+}
+
+AWeapon* AParagonCharacter::SpawnDefaultWeapon()
+{
+	if (!DefaultWeaponClass)
+		return nullptr;
+
+	//Spawn the weapon
+	AWeapon* DefaultWeapon = GetWorld()->SpawnActor<AWeapon>(DefaultWeaponClass);
+	return DefaultWeapon;
+}
+
+void AParagonCharacter::EquipWeapon(class AWeapon* WeaponToEquip)
+{
+	if (!WeaponToEquip)
+		return;
+
+	//Set collision box and area sphere to ignore all collisions queries
+	WeaponToEquip->GetAreaSphere()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	WeaponToEquip->GetCollisionBox()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+
+	//Get the hand socket
+	const USkeletalMeshSocket* HandSocket = GetMesh()->GetSocketByName(FName("right_hand_socket"));
+	if (!HandSocket)
+		return;
+
+	//Attach the weapon to the hand socket
+	HandSocket->AttachActor(WeaponToEquip, GetMesh());
+
+	EquippedWeapon = WeaponToEquip;
 }
 
 // Called every frame

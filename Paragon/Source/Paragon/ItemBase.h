@@ -6,6 +6,18 @@
 #include "GameFramework/Actor.h"
 #include "ItemBase.generated.h"
 
+UENUM(BlueprintType)
+enum class EItemRarity : uint8
+{
+	EIR_Damaged UMETA(DisplayName = "Damaged"),
+	EIR_Common UMETA(DisplayName = "Common"),
+	EIR_Uncommon UMETA(DisplayName = "Uncommon"),
+	EIR_Rare UMETA(DisplayName = "Rare"),
+	EIR_Legendary UMETA(DisplayName = "Rare"),
+
+	EIR_MAX UMETA(DisplayName = "DefaultMAX")
+};
+
 UCLASS()
 class PARAGON_API AItemBase : public AActor
 {
@@ -39,6 +51,11 @@ protected:
 		UPrimitiveComponent* OtherComponent,
 		int32 OtherBodyIndex);
 
+	/**
+	 * Sets the ActiveStars array of bools based on rarity
+	 */
+	void UpdateActiveStars();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -60,6 +77,26 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	class USphereComponent* AreaSphere;
 
+	//The name which appears on the Pickup Widget
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	FString ItemName;
+
+	//Item count (ammo, etc.)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	int32 ItemCount;
+
+	//Item rarity determines number of stars in pickup widget
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	EItemRarity ItemRarity;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	TArray<bool> ActiveStars;
+
 public:
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupInfoWidget; }
+
+	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
+	
+	FORCEINLINE UBoxComponent* GetCollisionBox() const { return CollisionBox; }
+
 };
