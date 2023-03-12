@@ -491,10 +491,6 @@ void AParagonCharacter::EquipWeapon(class AWeapon* WeaponToEquip)
 	if (!WeaponToEquip)
 		return;
 
-	//Set collision box and area sphere to ignore all collisions queries
-	WeaponToEquip->GetAreaSphere()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-	WeaponToEquip->GetCollisionBox()->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-
 	//Get the hand socket
 	const USkeletalMeshSocket* HandSocket = GetMesh()->GetSocketByName(FName("right_hand_socket"));
 	if (!HandSocket)
@@ -504,6 +500,8 @@ void AParagonCharacter::EquipWeapon(class AWeapon* WeaponToEquip)
 	HandSocket->AttachActor(WeaponToEquip, GetMesh());
 
 	EquippedWeapon = WeaponToEquip;
+	EquippedWeapon->SetItemState(EItemState::EIS_Equipped);
+	EquippedWeapon->UpdateItemProperties();
 }
 
 // Called every frame

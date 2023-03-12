@@ -18,6 +18,18 @@ enum class EItemRarity : uint8
 	EIR_MAX UMETA(DisplayName = "DefaultMAX")
 };
 
+enum class EItemState : uint8
+{
+	EIS_PickUp UMETA(DisplayName = "PickUp"),
+	EIS_EquipInterping UMETA(DisplayName = "EquipInterping"),
+	EIS_PickedUp UMETA(DisplayName = "PickedUp"),
+	EIS_Equipped UMETA(DisplayName = "Equipped"),
+	EIS_Falling UMETA(DisplayName = "Falling"),
+
+	EIS_MAX UMETA(DisplayName = "DefaultMAX")
+};
+
+
 UCLASS()
 class PARAGON_API AItemBase : public AActor
 {
@@ -56,6 +68,12 @@ protected:
 	 */
 	void UpdateActiveStars();
 
+	/**
+	 * Sets properties of an Item's components based on state
+	 * @param State Input state, properties will be based on
+	 */
+	void SetItemProperties(EItemState State);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -89,8 +107,13 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	EItemRarity ItemRarity;
 
+	//Stars states for item rarity
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	TArray<bool> ActiveStars;
+
+	//Current state of the item
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	EItemState ItemState;
 
 public:
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupInfoWidget; }
@@ -98,5 +121,11 @@ public:
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	
 	FORCEINLINE UBoxComponent* GetCollisionBox() const { return CollisionBox; }
+
+	FORCEINLINE EItemState GetItemState() const { return ItemState; }
+
+	FORCEINLINE void SetItemState(EItemState State) { ItemState = State; }
+
+	void UpdateItemProperties();
 
 };
