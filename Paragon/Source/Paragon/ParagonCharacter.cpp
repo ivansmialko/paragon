@@ -11,6 +11,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Sound/SoundCue.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "Engine/EngineTypes.h"
 
 #include "Components/SceneComponent.h"
 #include "Components/WidgetComponent.h"
@@ -458,21 +459,21 @@ void AParagonCharacter::TraceForItems()
 	FVector HitLocation;
 	if (TraceUnderCrosshairs(ItemTraceResult, HitLocation))
 	{
-		AItemBase* HitItem = Cast<AItemBase>(ItemTraceResult.Actor);
-		if (HitItem && HitItem->GetPickupWidget())
+		TraceHitItem = Cast<AItemBase>(ItemTraceResult.Actor);
+		if (TraceHitItem && TraceHitItem->GetPickupWidget())
 		{
 			//Shot Item's pick up widget
-			HitItem->GetPickupWidget()->SetVisibility(true);
+			TraceHitItem->GetPickupWidget()->SetVisibility(true);
 		}
 		
 		//We hit an AItemBase last frame
-		if (TraceHitLastFrame && (TraceHitLastFrame != HitItem))
+		if (TraceHitLastFrame && (TraceHitLastFrame != TraceHitItem))
 		{
 			//We are hitting a different AItemBase this frame from last frame
 			TraceHitLastFrame->GetPickupWidget()->SetVisibility(false);
 		}
 
-		TraceHitLastFrame = HitItem;
+		TraceHitLastFrame = TraceHitItem;
 	}
 }
 
@@ -502,6 +503,43 @@ void AParagonCharacter::EquipWeapon(class AWeapon* WeaponToEquip)
 	EquippedWeapon = WeaponToEquip;
 	EquippedWeapon->SetItemState(EItemState::EIS_Equipped);
 	EquippedWeapon->UpdateItemProperties();
+}
+
+void AParagonCharacter::DropWeapon()
+{
+	if (!EquippedWeapon)
+		return;
+
+	FDetachmentTransformRules DetachmentTransformRules(EDetachmentRule::KeepWorld, true);
+	EquippedWeapon->GetItemMesh()->DetachFromComponent(DetachmentTransformRules);
+	EquippedWeapon->SetItemState(EItemState::EIS_Falling);
+	EquippedWeapon->UpdateItemProperties();
+	EquippedWeapon->ThrowWeapon();
+
+	EquippedWeapon = nullptr;
+}
+
+void AParagonCharacter::SelectButtonPressed()
+{
+	if (!TraceHitItem)
+		return;
+
+	auto TraceHitWeapon = Cast<AWeapon>(TraceHitItem);
+	if (!TraceHitItem)
+		return;
+
+	SwapWeapon(TraceHitWeapon);
+}
+
+void AParagonCharacter::SelectButtonReleased()
+{
+
+}
+
+void AParagonCharacter::SwapWeapon(AWeapon* WeaponToSwap)
+{
+	DropWeapon();
+	EquipWeapon(WeaponToSwap);
 }
 
 // Called every frame
@@ -538,6 +576,9 @@ void AParagonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAction("AimingButton", IE_Pressed, this, &AParagonCharacter::SetAimingButtonPressed);
 	PlayerInputComponent->BindAction("AimingButton", IE_Released, this, &AParagonCharacter::SetAimingButtonReleased);
+
+	PlayerInputComponent->BindAction("Select", IE_Pressed, this, &AParagonCharacter::SelectButtonPressed);
+	PlayerInputComponent->BindAction("Select", IE_Released, this, &AParagonCharacter::SelectButtonReleased);
 
 }
 

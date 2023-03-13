@@ -13,11 +13,12 @@ enum class EItemRarity : uint8
 	EIR_Common UMETA(DisplayName = "Common"),
 	EIR_Uncommon UMETA(DisplayName = "Uncommon"),
 	EIR_Rare UMETA(DisplayName = "Rare"),
-	EIR_Legendary UMETA(DisplayName = "Rare"),
+	EIR_Legendary UMETA(DisplayName = "Legendary"),
 
 	EIR_MAX UMETA(DisplayName = "DefaultMAX")
 };
 
+UENUM(BlueprintType)
 enum class EItemState : uint8
 {
 	EIS_PickUp UMETA(DisplayName = "PickUp"),
@@ -127,5 +128,7 @@ public:
 	FORCEINLINE void SetItemState(EItemState State) { ItemState = State; }
 
 	void UpdateItemProperties();
+
+	FORCEINLINE USkeletalMeshComponent* GetItemMesh() { return ItemMesh; }
 
 };
