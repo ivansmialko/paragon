@@ -8,11 +8,16 @@
 #include "ParagonCharacter.h"
 
 // Sets default values
-AItemBase::AItemBase():
+AItemBase::AItemBase() :
 	ItemName(FString("Default")),
 	ItemCount(0),
 	ItemRarity(EItemRarity::EIR_Common),
-	ItemState(EItemState::EIS_PickUp)
+	ItemState(EItemState::EIS_PickUp),
+	//Item interp variables
+	InterpTimerDuration(0.7f),
+	ItemInterpStartLocation(FVector(0.f)),
+	CameraTargetLocation(FVector(0.f)),
+	bIsInterping(false)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -177,6 +182,9 @@ void AItemBase::SetItemProperties(EItemState State)
 		CollisionBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 		CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+		//Hide weapon widget
+		PickupInfoWidget->SetVisibility(false);
+
 		break;
 	}
 	case EItemState::EIS_Falling:
@@ -203,6 +211,14 @@ void AItemBase::SetItemProperties(EItemState State)
 	}
 }
 
+void AItemBase::FinishFlying()
+{
+	if (!PlayerCharacter)
+		return;
+
+	PlayerCharacter->GetPickupItem(this);
+}
+
 int a = 10;
 
 // Called every frame
@@ -215,5 +231,17 @@ void AItemBase::Tick(float DeltaTime)
 void AItemBase::UpdateItemProperties()
 {
 	SetItemProperties(ItemState);
+}
+
+void AItemBase::StartItemFlying(AParagonCharacter* Character)
+{
+	PlayerCharacter = Character;
+
+	//Store initial location of the item
+	ItemInterpStartLocation = GetActorLocation();
+	bIsInterping = true;
+	SetItemState(EItemState::EIS_EquipInterping);
+
+	GetWorldTimerManager().SetTimer(ItemInterpTimer, this, &AItemBase::FinishFlying, InterpTimerDuration);
 }
 

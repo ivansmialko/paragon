@@ -75,6 +75,11 @@ protected:
 	 */
 	void SetItemProperties(EItemState State);
 
+	/**
+	 * Called when interpolation timer is finished
+	 */
+	void FinishFlying();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -116,6 +121,32 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	EItemState ItemState;
 
+	//The curve asset to use for the items Z location when interping
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	class UCurveFloat* ItemZCurve;
+
+	//Starting location when item position interpolation to camera begins
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	FVector ItemInterpStartLocation;
+
+	//Target interp location in front of the camera
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	FVector CameraTargetLocation;
+
+	//True when interping
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	bool bIsInterping;
+
+	//Plays when we start interping
+	FTimerHandle ItemInterpTimer;
+
+	//Pointer to the character
+	class AParagonCharacter* PlayerCharacter;
+
+	//Duration of the interping timer
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	float InterpTimerDuration;
+
 public:
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupInfoWidget; }
 
@@ -130,5 +161,8 @@ public:
 	void UpdateItemProperties();
 
 	FORCEINLINE USkeletalMeshComponent* GetItemMesh() { return ItemMesh; }
+
+	//Called from the AParagonCharacter to begin item position interpolating to camera
+	void StartItemFlying(AParagonCharacter* Character);
 
 };

@@ -55,12 +55,15 @@ AParagonCharacter::AParagonCharacter() :
 	ShootTimerDuration(0.05f),
 	bIsFiringBullet(false),
 	//Automatic gun fire settings
-	AutomaticFireRate(0.1f),
 	bIsFireButtonPressed(false),
 	bIsShouldFireAtThisFrame(true),
+	AutomaticFireRate(0.1f),
 	//Item trace variables
 	bIsShouldTraceForItems(false),
-	TraceHitLastFrame(nullptr)
+	TraceHitLastFrame(nullptr),
+	//Item to camera interpolationg setting
+	CameraInterpDistance(250.f),
+	CameraInterpElevation(65.f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -540,6 +543,8 @@ void AParagonCharacter::SwapWeapon(AWeapon* WeaponToSwap)
 {
 	DropWeapon();
 	EquipWeapon(WeaponToSwap);
+	TraceHitItem = nullptr;
+	TraceHitLastFrame = nullptr;
 }
 
 // Called every frame
@@ -625,6 +630,25 @@ void AParagonCharacter::ChangeOverlappedItemCount(int8 Amount)
 	{
 		OverlappedItemCount += Amount;
 		bIsShouldTraceForItems = true;
+	}
+}
+
+FVector AParagonCharacter::GetCameraInterpLocation()
+{
+	const FVector CameraWorldLocation{ FollowCamera->GetComponentLocation() };
+	const FVector CameraForwardVector{ FollowCamera->GetForwardVector() };
+	const FVector CameraUpwardVector(0.f, 0.f, CameraInterpElevation);
+
+	//Desired = CameraWorldLocation + Forward * A + Upward * B
+	return CameraWorldLocation + CameraForwardVector * CameraInterpDistance + CameraUpwardVector;
+}
+
+void AParagonCharacter::GetPickupItem(AItemBase* Item)
+{
+	auto Weapon = Cast<AWeapon>(Item);
+	if (Weapon)
+	{
+		SwapWeapon(Weapon);
 	}
 }
 
