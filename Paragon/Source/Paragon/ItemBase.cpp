@@ -163,7 +163,26 @@ void AItemBase::SetItemProperties(EItemState State)
 		break;
 	}
 	case EItemState::EIS_EquipInterping:
+	{
+		//Set mesh properties
+		ItemMesh->SetSimulatePhysics(false);
+		ItemMesh->SetVisibility(true);
+		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		//Set area sphere properties
+		AreaSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		//Set collision box properties
+		CollisionBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		//Hide weapon widget
+		PickupInfoWidget->SetVisibility(false);
+
 		break;
+	}
 	case EItemState::EIS_PickedUp:
 		break;
 	case EItemState::EIS_Equipped:
@@ -217,15 +236,51 @@ void AItemBase::FinishFlying()
 		return;
 
 	PlayerCharacter->GetPickupItem(this);
+	bIsInterping = false;
 }
 
-int a = 10;
+void AItemBase::ItemInterp(float DeltaTime)
+{
+	if (!bIsInterping)
+		return;
+
+	if (!PlayerCharacter)
+		return;
+
+	if (!ItemZCurve)
+		return;
+
+	//Elapsed time since we started ItemInterp timer
+	const float ElapsedTime = GetWorldTimerManager().GetTimerElapsed(ItemInterpTimer);
+
+	//Get curve value corresponding to ElapsedTime
+	const float CurrentCurveValue = ItemZCurve->GetFloatValue(ElapsedTime);
+
+	//Get item's initial location when the curve started
+	FVector ItemLocation = ItemInterpStartLocation;
+
+	//Get location in front of the camera
+	const FVector CameraInterpLocation{ PlayerCharacter->GetCameraInterpLocation() };
+
+	//Vector from Item to CameraInterpLocation, X and Y are zeroed out
+	const FVector ItemToCameraDelta{ FVector(0.f, 0.f, (CameraInterpLocation - ItemLocation).Z) };
+
+	//Scale factor to multiply with CurrentCurveValue
+	const float DeltaZ = ItemToCameraDelta.Size();
+
+	//Adding curve value to the Z component of the initial location (scaled by DeltaZ)
+	ItemLocation.Z += CurrentCurveValue * DeltaZ;
+
+	SetActorLocation(ItemLocation, true, nullptr, ETeleportType::TeleportPhysics);
+}
 
 // Called every frame
 void AItemBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	//Handle item interping when in the EquipInterping state
+	ItemInterp(DeltaTime);
 }
 
 void AItemBase::UpdateItemProperties()

@@ -80,6 +80,12 @@ protected:
 	 */
 	void FinishFlying();
 
+	/**
+	 * Handles item iterpolation when in the EquipInterping state
+	 * @param DeltaTime Delta time from Tick()
+	 */
+	void ItemInterp(float DeltaTime);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

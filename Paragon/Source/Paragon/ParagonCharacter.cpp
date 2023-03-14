@@ -531,7 +531,7 @@ void AParagonCharacter::SelectButtonPressed()
 	if (!TraceHitItem)
 		return;
 
-	SwapWeapon(TraceHitWeapon);
+	TraceHitItem->StartItemFlying(this);
 }
 
 void AParagonCharacter::SelectButtonReleased()
