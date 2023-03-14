@@ -619,6 +619,16 @@ void AParagonCharacter::AimEvent()
 	}
 }
 
+void AParagonCharacter::UseBeginEvent()
+{
+	SelectButtonPressed();
+}
+
+void AParagonCharacter::UseEndEvent()
+{
+	SelectButtonReleased();
+}
+
 void AParagonCharacter::ChangeOverlappedItemCount(int8 Amount)
 {
 	if (OverlappedItemCount + Amount <= 0)

@@ -353,6 +353,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AimEvent();
 
+	UFUNCTION(BlueprintCallable)
+	void UseBeginEvent();
+
+	UFUNCTION(BlueprintCallable)
+	void UseEndEvent();
+
 	FORCEINLINE int8 GetOverlappedItemCount() const { return OverlappedItemCount; }
 
 	//Adds/subtracts to/from OverlappedItemCount and updates bShouldTraceForItems
