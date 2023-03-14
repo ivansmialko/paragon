@@ -2,6 +2,7 @@
 
 
 #include "ItemBase.h"
+#include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Components/SphereComponent.h"	
@@ -17,7 +18,10 @@ AItemBase::AItemBase() :
 	InterpTimerDuration(0.7f),
 	ItemInterpStartLocation(FVector(0.f)),
 	CameraTargetLocation(FVector(0.f)),
-	bIsInterping(false)
+	bIsInterping(false),
+	ItemInterpX(0.f),
+	ItemInterpY(0.f),
+	InterpInitalYawOffset(0.f)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -180,7 +184,6 @@ void AItemBase::SetItemProperties(EItemState State)
 
 		//Hide weapon widget
 		PickupInfoWidget->SetVisibility(false);
-
 		break;
 	}
 	case EItemState::EIS_PickedUp:
@@ -237,6 +240,9 @@ void AItemBase::FinishFlying()
 
 	PlayerCharacter->GetPickupItem(this);
 	bIsInterping = false;
+
+	//Set scale back to normal
+	SetActorScale3D(FVector(1.f));
 }
 
 void AItemBase::ItemInterp(float DeltaTime)
@@ -249,7 +255,7 @@ void AItemBase::ItemInterp(float DeltaTime)
 
 	if (!ItemZCurve)
 		return;
-
+	
 	//Elapsed time since we started ItemInterp timer
 	const float ElapsedTime = GetWorldTimerManager().GetTimerElapsed(ItemInterpTimer);
 
@@ -271,7 +277,31 @@ void AItemBase::ItemInterp(float DeltaTime)
 	//Adding curve value to the Z component of the initial location (scaled by DeltaZ)
 	ItemLocation.Z += CurrentCurveValue * DeltaZ;
 
+	const FVector CurrentItemLocation = GetActorLocation();
+
+	//Interpolated X and Y values
+	const float InterpXValue = FMath::FInterpTo(CurrentItemLocation.X, CameraInterpLocation.X, DeltaTime, 30.f);
+	const float InterpYValue = FMath::FInterpTo(CurrentItemLocation.Y, CameraInterpLocation.Y, DeltaTime, 30.f);
+
+	//Set X and Y of ItemLocation to Interped values
+	ItemLocation.X = InterpXValue;
+	ItemLocation.Y = InterpYValue;
+
 	SetActorLocation(ItemLocation, true, nullptr, ETeleportType::TeleportPhysics);
+
+	//Camera rotation this frame
+	const FRotator CurrCameraRotation = PlayerCharacter->GetFollowCamera()->GetComponentRotation();
+
+	//Camera rotation + inital Yaw offset
+	const FRotator ItemRotation{ 0.f, CurrCameraRotation.Yaw + InterpInitalYawOffset, 0.f };
+
+	SetActorRotation(ItemRotation, ETeleportType::TeleportPhysics);
+
+	if (!ItemScaleCurve)
+		return;
+
+	const float CurrScaleCurveValue = ItemScaleCurve->GetFloatValue(ElapsedTime);
+	SetActorScale3D(FVector(CurrScaleCurveValue, CurrScaleCurveValue, CurrScaleCurveValue));
 }
 
 // Called every frame
@@ -298,5 +328,14 @@ void AItemBase::StartItemFlying(AParagonCharacter* Character)
 	SetItemState(EItemState::EIS_EquipInterping);
 
 	GetWorldTimerManager().SetTimer(ItemInterpTimer, this, &AItemBase::FinishFlying, InterpTimerDuration);
-}
+
+	//Get initial Yaw of the Camera
+	const float CameraRotationYaw = PlayerCharacter->GetFollowCamera()->GetComponentRotation().Yaw;
+
+	//Get inital Yaw of the Item
+	const float ItemRotationYaw = GetActorRotation().Yaw;
+
+	//Inital Yaw offste between Camera and Item
+	InterpInitalYawOffset = ItemRotationYaw - CameraRotationYaw;
+} 
 

@@ -153,6 +153,17 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	float InterpTimerDuration;
 
+	//X and Y for the ItemBase while interping in the EquipInterping state
+	float ItemInterpX;
+	float ItemInterpY;
+
+	//Initial Yaw offset between the camera and the interping item
+	float InterpInitalYawOffset;
+
+	//Curve used to scale the item when flying
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	UCurveFloat* ItemScaleCurve;
+
 public:
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupInfoWidget; }
 
