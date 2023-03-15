@@ -63,7 +63,10 @@ AParagonCharacter::AParagonCharacter() :
 	TraceHitLastFrame(nullptr),
 	//Item to camera interpolationg setting
 	CameraInterpDistance(250.f),
-	CameraInterpElevation(65.f)
+	CameraInterpElevation(65.f),
+	//Starting ammo amount
+	Starting9mmAmmo(85),
+	StartingARAmmo(120)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -111,6 +114,7 @@ void AParagonCharacter::BeginPlay()
 	//Spawn and equip the default weapon and attach it to the mesh
 	EquipWeapon(SpawnDefaultWeapon());
 
+	InitializeAmmoMap();
 	//UGameplayStatics::GetPlayerController(GetWorld(), 0)->bShowMouseCursor = true;
 }
 
@@ -545,6 +549,12 @@ void AParagonCharacter::SwapWeapon(AWeapon* WeaponToSwap)
 	EquipWeapon(WeaponToSwap);
 	TraceHitItem = nullptr;
 	TraceHitLastFrame = nullptr;
+}
+
+void AParagonCharacter::InitializeAmmoMap()
+{
+	AmmoMap.Add(EAmmoType::EAT_9mm, Starting9mmAmmo);
+	AmmoMap.Add(EAmmoType::EAT_AR, StartingARAmmo);
 }
 
 // Called every frame
