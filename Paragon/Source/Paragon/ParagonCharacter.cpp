@@ -66,7 +66,9 @@ AParagonCharacter::AParagonCharacter() :
 	CameraInterpElevation(65.f),
 	//Starting ammo amount
 	Starting9mmAmmo(85),
-	StartingARAmmo(120)
+	StartingARAmmo(120),
+	//Combat variables
+	CurrentCombatState(ECombatState::ECS_Unoccupied)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -191,71 +193,35 @@ void AParagonCharacter::LookUp(float Value)
 
 void AParagonCharacter::FireWeapon()
 {
+	if (CurrentCombatState != ECombatState::ECS_Unoccupied)
+		return;	
+
 	if (!EquippedWeapon)
 		return;
 
-	const USkeletalMeshSocket* BarrelSocket = EquippedWeapon->GetItemMesh()->GetSocketByName("barrel_socket");
-	if (!BarrelSocket)
+	if (!IsWeaponHasAmmo())
 		return;
 
-	//Get location of barrel, where the bullet is flying out
-	const FTransform SocketTransform = BarrelSocket->GetSocketTransform(EquippedWeapon->GetItemMesh());
+	//Launch trace, display particles
+	FireSendBullet();
 
-	if (!MuzzleFlash)
-		return;
+	//Play gunshot sound
+	FirePlaySound();
 
-	//Calculate point of impact of the bullet
-	FVector ImpactPoint;
-	bool bResult = GetBeamEndLocation(SocketTransform.GetLocation(), ImpactPoint);
-	if (!bResult)
-		return;
+	//Play firing animation montage
+	FirePlayAnim();
 
-	if (!FireSound)
-		return;
-
-	//Play fire sound
-	UGameplayStatics::PlaySound2D(GetWorld(), FireSound);
-
-	//Spawn muzzle flash particles
-	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
-
-	if (!ImpactParticles)
-		return;
-
-	//Spawn impact particles
-	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, ImpactPoint);
-
-	if (!BeamParticles)
-		return;
-		
-	//Spawn bullet trace particles
-	UParticleSystemComponent* BulletBeamParticles = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BeamParticles, SocketTransform);
-	if (!BulletBeamParticles)
-		return;
-
-	BulletBeamParticles->SetVectorParameter(FName("Target"), ImpactPoint);
-
-	//Play player character animation of shooting
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (!AnimInstance || !FireRecoilMontage)
-		return;
-
-	AnimInstance->Montage_Play(FireRecoilMontage);
-	AnimInstance->Montage_JumpToSection(FName("WeaponFire"));
-
-	if (!FeedbackFire)
-		return;
-
-	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (!PlayerController)
-		return;
-
-	PlayerController->ClientPlayForceFeedback(FeedbackFire, false, FName(TEXT("FeedbackFire")));
-
+	//Play vibration feedback to controller
+	FirePlayFeedback();
+	 
 	//Start bullet fire timer for crosshairs
 	StartCrosshairBulletFire();
 
+	//Remove one bullet from magazine
 	EquippedWeapon->DecrementAmmoAmount();
+
+	//Start timer to control fire rate
+	StartFireTimer();
 }
 
 bool AParagonCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FVector& OutBeamLocation)
@@ -386,11 +352,7 @@ void AParagonCharacter::FinishCrosshairBulletFire()
 void AParagonCharacter::FireButtonPressed()
 {
 	bIsFireButtonPressed = true;
-
-	if (!IsWeaponHasAmmo())
-		return;
-
-	StartFireTimer();
+	FireWeapon();
 }
 
 void AParagonCharacter::FireButtonReleased()
@@ -400,28 +362,27 @@ void AParagonCharacter::FireButtonReleased()
 
 void AParagonCharacter::StartFireTimer()
 {
-	if (!bIsShouldFireAtThisFrame)
-		return;
-
-	FireWeapon();
-	bIsShouldFireAtThisFrame = false;
+	CurrentCombatState = ECombatState::ECS_FireTimerInProgress;
 
 	//Timer to wait for a new bullet to fire
-	GetWorldTimerManager().SetTimer(AutoFireTimer, this, &AParagonCharacter::AutoFireReset, AutomaticFireRate);
+	GetWorldTimerManager().SetTimer(AutoFireTimer, this, &AParagonCharacter::FireTimerCallback, AutomaticFireRate);
 }
 
-void AParagonCharacter::AutoFireReset()
+void AParagonCharacter::FireTimerCallback()
 {
-	if (!IsWeaponHasAmmo())
-		return;
+	CurrentCombatState = ECombatState::ECS_Unoccupied;
 
-	bIsShouldFireAtThisFrame = true;
+	if (!IsWeaponHasAmmo())
+	{
+		//Reloading
+		return;
+	}
 
 	if (!bIsFireButtonPressed)
 		return;
 
 	//If fire button still pressed - fire another bullet
-	StartFireTimer();
+	FireWeapon();
 }
 
 bool AParagonCharacter::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& OutHitLocation)
@@ -575,6 +536,77 @@ bool AParagonCharacter::IsWeaponHasAmmo()
 		return false;
 
 	return (EquippedWeapon->GetAmmoAmount() > 0);
+}
+
+void AParagonCharacter::FirePlaySound()
+{
+	if (!FireSound)
+		return;
+
+	//Play fire sound
+	UGameplayStatics::PlaySound2D(GetWorld(), FireSound);
+}
+
+void AParagonCharacter::FireSendBullet()
+{
+	const USkeletalMeshSocket* BarrelSocket = EquippedWeapon->GetItemMesh()->GetSocketByName("barrel_socket");
+	if (!BarrelSocket)
+		return;
+
+	//Get location of barrel, where the bullet is flying out
+	const FTransform SocketTransform = BarrelSocket->GetSocketTransform(EquippedWeapon->GetItemMesh());
+
+	if (!MuzzleFlash)
+		return;
+
+	//Spawn muzzle flash particles
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
+
+	//Calculate point of impact of the bullet
+	FVector ImpactPoint;
+	bool bResult = GetBeamEndLocation(SocketTransform.GetLocation(), ImpactPoint);
+
+	if (bResult)
+	{
+		if (!ImpactParticles)
+			return;
+
+		//Spawn impact particles
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, ImpactPoint);
+	}
+
+	if (!BeamParticles)
+		return;
+
+	//Spawn bullet trace particles
+	UParticleSystemComponent* BulletBeamParticles = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BeamParticles, SocketTransform);
+	if (!BulletBeamParticles)
+		return;
+
+	BulletBeamParticles->SetVectorParameter(FName("Target"), ImpactPoint);
+}
+
+void AParagonCharacter::FirePlayAnim()
+{
+	//Play player character animation of shooting
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (!AnimInstance || !FireRecoilMontage)
+		return;
+
+	AnimInstance->Montage_Play(FireRecoilMontage);
+	AnimInstance->Montage_JumpToSection(FName("WeaponFire"));
+}
+
+void AParagonCharacter::FirePlayFeedback()
+{
+	if (!FeedbackFire)
+		return;
+
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (!PlayerController)
+		return;
+
+	PlayerController->ClientPlayForceFeedback(FeedbackFire, false, FName(TEXT("FeedbackFire")));
 }
 
 // Called every frame

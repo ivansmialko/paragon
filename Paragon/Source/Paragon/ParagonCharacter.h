@@ -15,6 +15,16 @@ enum class EAmmoType : uint8
 	EAT_MAX UMETA(DisplayName = "DefaultMAX")
 };
 
+UENUM(BlueprintType)
+enum class ECombatState : uint8
+{
+	ECS_Unoccupied UMETA(DisplayName = "Unoccupied"),
+	ECS_FireTimerInProgress UMETA(DisplayName = "FireTimerInProgress"),
+	ECS_ReloadingState UMETA(DisplayName = "ReloadingState"),
+
+	ECS_MAX UMETA(DisplayName = "DefaultMax")
+};
+
 UCLASS()
 class PARAGON_API AParagonCharacter : public ACharacter
 {
@@ -122,7 +132,7 @@ protected:
 	 * Allows to fire next bullet, called when fire-rate delay is ended
 	 */
 	UFUNCTION()
-	void AutoFireReset();
+	void FireTimerCallback();
 
 	/**
 	 * Line trace for items under the crosshairs
@@ -170,6 +180,17 @@ protected:
 	 * Check to make sure if weapon has ammo
 	 */
 	bool IsWeaponHasAmmo();
+
+	void FirePlaySound();
+
+	void FireSendBullet();
+
+	void FirePlayAnim();
+
+	void FirePlayFeedback();
+
+	void FirePlayParticles();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -353,6 +374,10 @@ private:
 	//Starting amount of 9mm ammo
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Items, meta = (AllowPrivateAccess = "true"))
 	int32 StartingARAmmo;
+
+	//Combat state can only Fire or Reload only when Onoccupied
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	ECombatState CurrentCombatState;
 public:
 
 	//Return CameraBoom subobject
