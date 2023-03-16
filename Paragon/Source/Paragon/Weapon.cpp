@@ -5,7 +5,8 @@
 
 AWeapon::AWeapon():
 	ThrowWeaponTime(0.7f),
-	bIsFalling(false)
+	bIsFalling(false),
+	AmmoAmount(0)
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
@@ -43,6 +44,17 @@ void AWeapon::ThrowWeapon()
 
 	bIsFalling = true;
 	GetWorldTimerManager().SetTimer(ThrowWeaponTimer, this, &AWeapon::StopFalling, ThrowWeaponTime); 
+}
+
+void AWeapon::DecrementAmmoAmount()
+{
+	if (AmmoAmount - 1 <= 0)
+	{
+		AmmoAmount = 0;
+		return;
+	}
+
+	AmmoAmount--;
 }
 
 void AWeapon::StopFalling()

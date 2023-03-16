@@ -191,12 +191,15 @@ void AParagonCharacter::LookUp(float Value)
 
 void AParagonCharacter::FireWeapon()
 {
-	const USkeletalMeshSocket* BarrelSocket = GetMesh()->GetSocketByName("barrel_socket");
+	if (!EquippedWeapon)
+		return;
+
+	const USkeletalMeshSocket* BarrelSocket = EquippedWeapon->GetItemMesh()->GetSocketByName("barrel_socket");
 	if (!BarrelSocket)
 		return;
 
 	//Get location of barrel, where the bullet is flying out
-	const FTransform SocketTransform = BarrelSocket->GetSocketTransform(GetMesh());
+	const FTransform SocketTransform = BarrelSocket->GetSocketTransform(EquippedWeapon->GetItemMesh());
 
 	if (!MuzzleFlash)
 		return;
@@ -251,6 +254,8 @@ void AParagonCharacter::FireWeapon()
 
 	//Start bullet fire timer for crosshairs
 	StartCrosshairBulletFire();
+
+	EquippedWeapon->DecrementAmmoAmount();
 }
 
 bool AParagonCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FVector& OutBeamLocation)
@@ -381,6 +386,10 @@ void AParagonCharacter::FinishCrosshairBulletFire()
 void AParagonCharacter::FireButtonPressed()
 {
 	bIsFireButtonPressed = true;
+
+	if (!IsWeaponHasAmmo())
+		return;
+
 	StartFireTimer();
 }
 
@@ -403,6 +412,9 @@ void AParagonCharacter::StartFireTimer()
 
 void AParagonCharacter::AutoFireReset()
 {
+	if (!IsWeaponHasAmmo())
+		return;
+
 	bIsShouldFireAtThisFrame = true;
 
 	if (!bIsFireButtonPressed)
@@ -555,6 +567,14 @@ void AParagonCharacter::InitializeAmmoMap()
 {
 	AmmoMap.Add(EAmmoType::EAT_9mm, Starting9mmAmmo);
 	AmmoMap.Add(EAmmoType::EAT_AR, StartingARAmmo);
+}
+
+bool AParagonCharacter::IsWeaponHasAmmo()
+{
+	if (!EquippedWeapon)
+		return false;
+
+	return (EquippedWeapon->GetAmmoAmount() > 0);
 }
 
 // Called every frame
