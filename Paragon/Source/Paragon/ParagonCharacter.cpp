@@ -374,7 +374,8 @@ void AParagonCharacter::FireTimerCallback()
 
 	if (!IsWeaponHasAmmo())
 	{
-		//Reloading
+		//Reloading if no ammo in the magazine
+		ReloadWeapon();
 		return;
 	}
 
@@ -609,6 +610,88 @@ void AParagonCharacter::FirePlayFeedback()
 	PlayerController->ClientPlayForceFeedback(FeedbackFire, false, FName(TEXT("FeedbackFire")));
 }
 
+void AParagonCharacter::ReloadButtonPressed()
+{
+	ReloadWeapon();
+}
+
+void AParagonCharacter::ReloadWeapon()
+{
+	if (!EquippedWeapon)
+		return;
+
+	if (CurrentCombatState != ECombatState::ECS_Unoccupied)
+		return;
+
+	if (!IsHaveAmmo())
+		return;
+
+	CurrentCombatState = ECombatState::ECS_ReloadingState;
+
+	if (!ReloadMontage)
+		return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (!AnimInstance)
+		return;
+
+	AnimInstance->Montage_Play(ReloadMontage);
+	AnimInstance->Montage_JumpToSection(EquippedWeapon->GetReloadMontageSection());
+
+}
+
+void AParagonCharacter::FinishReloading()
+{
+	//Update the combat state
+	CurrentCombatState = ECombatState::ECS_Unoccupied;
+
+	if (!EquippedWeapon)
+		return;
+
+	const auto AmmoType{ EquippedWeapon->GetAmmoType() };
+
+	//Update the AmmoMap
+	if (!AmmoMap.Contains(AmmoType))
+		return;
+
+	//Amount of ammo the character is carrying of the equipped weapon type
+	int32 CarriedAmmo = AmmoMap[AmmoType];
+
+	//Space left in the magazine of EquippedWeapon
+	const int32 MagEmptySpace = EquippedWeapon->GetMagazineCapacity() - EquippedWeapon->GetAmmoAmount();
+	
+	if (MagEmptySpace > CarriedAmmo)
+	{
+		//Reload the magazine with all the weapon we are carrying
+		EquippedWeapon->ReloadAmmo(CarriedAmmo);
+		CarriedAmmo = 0;
+	}
+	else
+	{
+		//Fill the magazine
+		EquippedWeapon->ReloadAmmo(MagEmptySpace);
+		CarriedAmmo -= MagEmptySpace;
+	}
+
+	//Update amount of carried ammo
+	AmmoMap.Add(AmmoType, CarriedAmmo);
+}
+
+bool AParagonCharacter::IsHaveAmmo()
+{
+	if (!EquippedWeapon)
+		return false;
+
+	auto CurrAmmoType = EquippedWeapon->GetAmmoType();
+
+	if (!AmmoMap.Contains(CurrAmmoType))
+		return false;
+
+	return (AmmoMap[CurrAmmoType] > 0);
+
+	return false;
+}
+
 // Called every frame
 void AParagonCharacter::Tick(float DeltaTime)
 {
@@ -647,6 +730,7 @@ void AParagonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Select", IE_Pressed, this, &AParagonCharacter::SelectButtonPressed);
 	PlayerInputComponent->BindAction("Select", IE_Released, this, &AParagonCharacter::SelectButtonReleased);
 
+	PlayerInputComponent->BindAction("ReloadButton", IE_Pressed, this, &AParagonCharacter::ReloadButtonPressed);
 }
 
 void AParagonCharacter::FireBeginEvent()

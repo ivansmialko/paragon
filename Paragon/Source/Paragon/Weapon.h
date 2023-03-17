@@ -4,11 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "ItemBase.h"
+#include "AmmoType.h"
 #include "Weapon.generated.h"
 
-/**
- * 
- */
+UENUM(BlueprintType)
+enum class EWeaponType : uint8
+{
+	EWT_SMG UMETA(DisplayName = "SMG"),
+	EWT_AR UMETA(DisplayName = "AR"),
+
+	EWT_MAX UMETA(DisplayName = "DefaultMAX")
+};
+
 UCLASS()
 class PARAGON_API AWeapon : public AItemBase
 {
@@ -35,6 +42,21 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"))
 	int32 AmmoAmount;
 
+	//Maximum ammo that our weapon can hold
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"))
+	int32 MagazineCapacity;
+
+	//Weapon type of the ammo
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"))
+	EWeaponType WeaponType;
+
+	//The type of ammo for this weapon
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"))
+	EAmmoType AmmoType;
+
+	//Name for the reload montage section
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"))
+	FName ReloadMontageSection;
 public:
 
 	/**
@@ -44,8 +66,19 @@ public:
 
 	FORCEINLINE int32 GetAmmoAmount() const { return AmmoAmount; }
 
+	FORCEINLINE int32 GetMagazineCapacity() const { return MagazineCapacity; }
+
 	/**
 	 * Called from ParagonCharacter when firing weapon
 	 */
 	void DecrementAmmoAmount();
+
+	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
+
+	FORCEINLINE EAmmoType GetAmmoType() const { return AmmoType; }
+
+	FORCEINLINE FName GetReloadMontageSection() const { return ReloadMontageSection; }
+
+	void ReloadAmmo(int32 Amount);
+
 };

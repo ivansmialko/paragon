@@ -4,16 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "AmmoType.h"
 #include "ParagonCharacter.generated.h"
-
-UENUM(BlueprintType)
-enum class EAmmoType : uint8
-{
-	EAT_9mm UMETA(DisplayName = "9mm"),
-	EAT_AR UMETA(DisplayName = "Assault Rifle"),
-
-	EAT_MAX UMETA(DisplayName = "DefaultMAX")
-};
 
 UENUM(BlueprintType)
 enum class ECombatState : uint8
@@ -181,6 +173,9 @@ protected:
 	 */
 	bool IsWeaponHasAmmo();
 
+	/**
+	 * Fire weapon functions
+	 */
 	void FirePlaySound();
 
 	void FireSendBullet();
@@ -189,8 +184,21 @@ protected:
 
 	void FirePlayFeedback();
 
-	void FirePlayParticles();
+	/**
+	 * Bound to the R key and gamepad Face Button Left
+	 */
+	void ReloadButtonPressed();
 
+	/**
+	 * Handle reloading of the weapon
+	 */
+	void ReloadWeapon();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishReloading();
+
+	//Checks to see if we have ammo of the equipped EquippedWeapon's ammo type
+	bool IsHaveAmmo();
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -378,6 +386,10 @@ private:
 	//Combat state can only Fire or Reload only when Onoccupied
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	ECombatState CurrentCombatState;
+
+	//Reload animation montage
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* ReloadMontage;
 public:
 
 	//Return CameraBoom subobject

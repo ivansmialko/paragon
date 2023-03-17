@@ -6,7 +6,11 @@
 AWeapon::AWeapon():
 	ThrowWeaponTime(0.7f),
 	bIsFalling(false),
-	AmmoAmount(0)
+	AmmoAmount(35),
+	WeaponType(EWeaponType::EWT_SMG),
+	AmmoType(EAmmoType::EAT_9mm),
+	ReloadMontageSection(FName(TEXT("Reload SMG"))),
+	MagazineCapacity(35)
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
@@ -55,6 +59,11 @@ void AWeapon::DecrementAmmoAmount()
 	}
 
 	AmmoAmount--;
+}
+
+void AWeapon::ReloadAmmo(int32 Amount)
+{
+	AmmoAmount += Amount;
 }
 
 void AWeapon::StopFalling()
