@@ -206,6 +206,29 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	/**
+	 * Called from animation blueprint with GrabClip notify
+	 */
+	UFUNCTION(BlueprintCallable)
+	void GrabClip();
+
+	/**
+	* Called from animation blueprint with ReleaseClip notify
+	*/
+	UFUNCTION(BlueprintCallable)
+	void ReleaseClip();
+
+	/**
+	 * Called from animation blueprint with HideClip notify
+	 */
+	UFUNCTION(BlueprintCallable)
+	void HideClip();
+
+	/**
+	 * Called from animation blueprint with ShowClip notify
+	 */
+	UFUNCTION(BlueprintCallable)
+	void ShowClip();
 
 private:
 
@@ -390,6 +413,14 @@ private:
 	//Reload animation montage
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* ReloadMontage;
+
+	//Transform of the clip when we first grabbed the clip during reloading
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	FTransform ClipTransform;
+
+	//Scene component to attach to the character's hand during reloading
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* HandSceneComponent;
 public:
 
 	//Return CameraBoom subobject

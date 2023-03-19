@@ -96,6 +96,8 @@ AParagonCharacter::AParagonCharacter() :
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.2f;
 
+	//Create Hand Scene component
+	HandSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("HandSceneComp"));
 }
 
 // Called when the game starts or when spawned
@@ -731,6 +733,62 @@ void AParagonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Select", IE_Released, this, &AParagonCharacter::SelectButtonReleased);
 
 	PlayerInputComponent->BindAction("ReloadButton", IE_Pressed, this, &AParagonCharacter::ReloadButtonPressed);
+}
+
+void AParagonCharacter::GrabClip()
+{
+	if (!EquippedWeapon)
+		return;
+
+	if (!HandSceneComponent)
+		return;
+
+	//Index for the clip bone on the EquippedWeapon
+	int32 ClipBoneIndex{ EquippedWeapon->GetItemMesh()->GetBoneIndex(EquippedWeapon->GetClipBoneName()) };
+	
+	//Store the transform of the clip
+	ClipTransform = EquippedWeapon->GetItemMesh()->GetBoneTransform(ClipBoneIndex);
+
+	FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepRelative, true);
+	HandSceneComponent->AttachToComponent(GetMesh(), AttachmentRules, FName(TEXT("Hand_L")));
+	HandSceneComponent->SetWorldTransform(ClipTransform);
+
+	EquippedWeapon->SetMovingClip(true);
+}
+
+void AParagonCharacter::ReleaseClip()
+{
+	EquippedWeapon->SetMovingClip(false);
+}
+
+void AParagonCharacter::HideClip()
+{
+	if (!EquippedWeapon)
+		return;
+
+	if (!HandSceneComponent)
+		return;
+
+	//Index for the clip bone on the EquippedWeapon
+	int32 ClipBoneIndex{ EquippedWeapon->GetItemMesh()->GetBoneIndex(EquippedWeapon->GetClipBoneName()) };
+
+	//Hide the clip bone to hide used magazine
+	EquippedWeapon->GetItemMesh()->HideBone(ClipBoneIndex, EPhysBodyOp::PBO_None);
+}
+
+void AParagonCharacter::ShowClip()
+{
+	if (!EquippedWeapon)
+		return;
+
+	if (!HandSceneComponent)
+		return;
+
+	//Index for the clip bone on the EquippedWeapon
+	int32 ClipBoneIndex{ EquippedWeapon->GetItemMesh()->GetBoneIndex(EquippedWeapon->GetClipBoneName()) };
+
+	//Hide the clip bone to show new magazine that have been taken from pocket
+	EquippedWeapon->GetItemMesh()->UnHideBone(ClipBoneIndex);
 }
 
 void AParagonCharacter::FireBeginEvent()
