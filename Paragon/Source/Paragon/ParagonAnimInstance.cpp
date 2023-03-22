@@ -68,18 +68,43 @@ void UParagonAnimInstance::TurnInPlace()
 		return;
 
 	if (Speed > 0)
+	{
+		RootYawOffset = 0.f;
+
+		CharacterYaw = ParagonCharacter->GetActorRotation().Yaw;
+		CharacterYawLastFrame = CharacterYaw;
+
+		RotationCurveValue = 0.f;
+		RotationCurveValueLastFrame = 0.f;
 		return;
+	}
 
 	CharacterYawLastFrame = CharacterYaw;
 	CharacterYaw = ParagonCharacter->GetActorRotation().Yaw;
 
 	const float YawDelta{ CharacterYaw - CharacterYawLastFrame };
 
-	RootYawOffset -= YawDelta;
-
-	if (!GEngine)
+	//Root bone Yaw Offset, updated and clamped to [-180, 180]
+	RootYawOffset = UKismetMathLibrary::NormalizeAxis(RootYawOffset - YawDelta);
+	
+	//1.0 if turning animation is playing, 0.0 if not
+	const float TurningCurveValue{ GetCurveValue(TEXT("Turning")) };
+	if (TurningCurveValue <= 0)
 		return;
 
-	GEngine->AddOnScreenDebugMessage(1, -1, FColor::Blue, FString::Printf(TEXT("CharacterYaw: %f"), CharacterYaw));
-	GEngine->AddOnScreenDebugMessage(2, -1, FColor::Red, FString::Printf(TEXT("RootYawOffset: %f"), RootYawOffset));
+	RotationCurveValueLastFrame = RotationCurveValue;
+	RotationCurveValue = GetCurveValue(TEXT("Rotation"));
+
+	const float RotationDelta{ RotationCurveValue - RotationCurveValueLastFrame };
+
+	//RootYawOffset > 0, -> Turning left
+	//RootYawOffset < 0, -> Turning right
+	(RootYawOffset > 0 ? RootYawOffset -= RotationDelta : RootYawOffset += RotationDelta);
+
+	const float ABSRootYawOffset{ FMath::Abs(RootYawOffset) };
+	if (ABSRootYawOffset > 90)
+	{
+		const float YawExcess{ ABSRootYawOffset - 90.f };
+		(RootYawOffset > 0 ? RootYawOffset -= YawExcess : RootYawOffset += YawExcess);
+	}
 }
