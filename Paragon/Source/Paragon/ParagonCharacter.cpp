@@ -512,6 +512,11 @@ void AParagonCharacter::SelectButtonPressed()
 		return;
 
 	TraceHitItem->StartItemFlying(this);
+
+	if (!TraceHitItem->GetPickupSound())
+		return;
+
+	UGameplayStatics::PlaySound2D(GetWorld(), TraceHitItem->GetPickupSound());
 }
 
 void AParagonCharacter::SelectButtonReleased()
@@ -860,9 +865,14 @@ FVector AParagonCharacter::GetCameraInterpLocation()
 void AParagonCharacter::GetPickupItem(AItemBase* Item)
 {
 	auto Weapon = Cast<AWeapon>(Item);
-	if (Weapon)
-	{
-		SwapWeapon(Weapon);
-	}
+	if (!Weapon)
+		return;
+
+	SwapWeapon(Weapon);
+
+	if (!Item->GetEquipSound())
+		return;
+
+	UGameplayStatics::PlaySound2D(this, Item->GetEquipSound());
 }
 

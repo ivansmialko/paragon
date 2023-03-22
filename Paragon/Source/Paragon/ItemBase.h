@@ -164,6 +164,14 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	UCurveFloat* ItemScaleCurve;
 
+	//Sound played when item is picked up
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	class USoundCue* PickupSound;
+
+	//Sound player when item is equipped
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	USoundCue* EquipSound;
+
 public:
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupInfoWidget; }
 
@@ -181,5 +189,9 @@ public:
 
 	//Called from the AParagonCharacter to begin item position interpolating to camera
 	void StartItemFlying(AParagonCharacter* Character);
+
+	FORCEINLINE USoundCue* GetPickupSound() const { return PickupSound; };
+	
+	FORCEINLINE USoundCue* GetEquipSound() const { return EquipSound; }
 
 };
