@@ -16,10 +16,19 @@ class PARAGON_API UParagonAnimInstance : public UAnimInstance
 	
 public:
 
+	UParagonAnimInstance();
+
 	UFUNCTION(BlueprintCallable)
 	void UpdateAnimationProperties(float DeltaTime);
 
 	virtual void NativeInitializeAnimation() override;
+
+protected:
+
+	/**
+	 * Handle turning in place variables
+	 */
+	void TurnInPlace();
 
 private:
 
@@ -48,4 +57,13 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	bool bIsAiming;
+
+	//Yaw of the character this frame
+	float CharacterYaw;
+
+	//Yaw of the character last frame
+	float CharacterYawLastFrame;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turn in place", meta = (AllowPrivateAccess = "true"))
+	float RootYawOffset;
 };

@@ -6,6 +6,20 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
+UParagonAnimInstance::UParagonAnimInstance() :
+	Speed(0.f),
+	bIsInAir(false),
+	bIsAccelerating(false),
+	MovementOffset(0.f),
+	LastMovementOffset(0.f),
+	bIsAiming(false),
+	CharacterYaw(0.f),
+	CharacterYawLastFrame(0.f),
+	RootYawOffset(0.f)
+{
+
+}
+
 void UParagonAnimInstance::UpdateAnimationProperties(float DeltaTime)
 {
 	if (ParagonCharacter == nullptr)
@@ -38,10 +52,34 @@ void UParagonAnimInstance::UpdateAnimationProperties(float DeltaTime)
 	}
 
 	bIsAiming = ParagonCharacter->GetIsAiming();
+
+	TurnInPlace();
 }
 
 void UParagonAnimInstance::NativeInitializeAnimation()
 {
 	ParagonCharacter = Cast<AParagonCharacter>(TryGetPawnOwner());
 
+}
+
+void UParagonAnimInstance::TurnInPlace()
+{
+	if (!ParagonCharacter)
+		return;
+
+	if (Speed > 0)
+		return;
+
+	CharacterYawLastFrame = CharacterYaw;
+	CharacterYaw = ParagonCharacter->GetActorRotation().Yaw;
+
+	const float YawDelta{ CharacterYaw - CharacterYawLastFrame };
+
+	RootYawOffset -= YawDelta;
+
+	if (!GEngine)
+		return;
+
+	GEngine->AddOnScreenDebugMessage(1, -1, FColor::Blue, FString::Printf(TEXT("CharacterYaw: %f"), CharacterYaw));
+	GEngine->AddOnScreenDebugMessage(2, -1, FColor::Red, FString::Printf(TEXT("RootYawOffset: %f"), RootYawOffset));
 }

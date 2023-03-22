@@ -336,8 +336,6 @@ void AParagonCharacter::UpdateCrosshairSpread(float DeltaTime)
 	}
 
 	CrosshairSpreadMultiplier = 0.5f + CrosshairVelocityScaleFactor + CrosshairInAirScaleFactor + CrosshairAimScaleFactor + CrosshairShootingFactor;
-
-	GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::White, FString::Printf(TEXT("Current crosshair spread: %f"), CrosshairSpreadMultiplier));
 }
 
 void AParagonCharacter::StartCrosshairBulletFire()
