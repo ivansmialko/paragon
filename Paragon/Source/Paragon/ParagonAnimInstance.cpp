@@ -15,7 +15,9 @@ UParagonAnimInstance::UParagonAnimInstance() :
 	bIsAiming(false),
 	CharacterYaw(0.f),
 	CharacterYawLastFrame(0.f),
-	RootYawOffset(0.f)
+	RootYawOffset(0.f),
+	Pitch(0.f),
+	bIsReloading(false)
 {
 
 }
@@ -66,6 +68,9 @@ void UParagonAnimInstance::TurnInPlace()
 {
 	if (!ParagonCharacter)
 		return;
+
+	Pitch = ParagonCharacter->GetBaseAimRotation().Pitch;
+	bIsReloading = ParagonCharacter->GetCombatState() == ECombatState::ECS_ReloadingState;
 
 	if (Speed > 0)
 	{

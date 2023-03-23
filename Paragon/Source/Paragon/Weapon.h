@@ -93,4 +93,5 @@ public:
 
 	FORCEINLINE void SetMovingClip(bool bIsMoving) { bIsClipMoving = bIsMoving; }
 
+	bool GetIsClipFull();
 };

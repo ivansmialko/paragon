@@ -631,6 +631,9 @@ void AParagonCharacter::ReloadWeapon()
 	if (!IsHaveAmmo())
 		return;
 
+	if (EquippedWeapon->GetIsClipFull())
+		return;
+
 	CurrentCombatState = ECombatState::ECS_ReloadingState;
 
 	if (!ReloadMontage)
@@ -873,4 +876,3 @@ void AParagonCharacter::GetPickupItem(AItemBase* Item)
 
 	UGameplayStatics::PlaySound2D(this, Item->GetEquipSound());
 }
-

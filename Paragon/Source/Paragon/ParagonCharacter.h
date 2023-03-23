@@ -465,4 +465,6 @@ public:
 	FVector GetCameraInterpLocation();
 
 	void GetPickupItem(AItemBase* Item);
+
+	FORCEINLINE ECombatState GetCombatState() const { return CurrentCombatState; }
 };
