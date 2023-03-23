@@ -17,7 +17,8 @@ UParagonAnimInstance::UParagonAnimInstance() :
 	CharacterYawLastFrame(0.f),
 	RootYawOffset(0.f),
 	Pitch(0.f),
-	bIsReloading(false)
+	bIsReloading(false),
+	CurrentOffsetState(EOffsetState::EOS_Hip)
 {
 
 }
@@ -56,6 +57,23 @@ void UParagonAnimInstance::UpdateAnimationProperties(float DeltaTime)
 	bIsAiming = ParagonCharacter->GetIsAiming();
 
 	TurnInPlace();
+
+	if (bIsReloading)
+	{
+		CurrentOffsetState = EOffsetState::EOS_Reloading;
+	}
+	else if (bIsInAir)
+	{
+		CurrentOffsetState = EOffsetState::EOS_InAir;
+	}
+	else if (ParagonCharacter->GetIsAiming())
+	{
+		CurrentOffsetState = EOffsetState::EOS_Aiming;
+	}
+	else
+	{
+		CurrentOffsetState = EOffsetState::EOS_Hip;
+	}
 }
 
 void UParagonAnimInstance::NativeInitializeAnimation()
@@ -72,7 +90,7 @@ void UParagonAnimInstance::TurnInPlace()
 	Pitch = ParagonCharacter->GetBaseAimRotation().Pitch;
 	bIsReloading = ParagonCharacter->GetCombatState() == ECombatState::ECS_ReloadingState;
 
-	if (Speed > 0)
+	if (Speed > 0 || bIsInAir)
 	{
 		RootYawOffset = 0.f;
 

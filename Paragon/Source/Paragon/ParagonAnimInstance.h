@@ -6,6 +6,17 @@
 #include "Animation/AnimInstance.h"
 #include "ParagonAnimInstance.generated.h"
 
+UENUM(BlueprintType)
+enum class EOffsetState : uint8
+{
+	EOS_Aiming UMETA(DisplayName = "Aiming"),
+	EOS_Hip UMETA(DisplayName = "Hip"),
+	EOS_Reloading UMETA(DisplayName = "Reloading"),
+	EOS_InAir UMETA(DisplayName = "InAir"),
+
+	EOS_MAX UMETA(DisplayName = "DefaultMax")
+};
+
 /**
  * 
  */
@@ -80,4 +91,8 @@ private:
 	//True when reloading. Used to prevent aim offset while reloading
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turn in place", meta = (AllowPrivateAccess = "true"))
 	bool bIsReloading;
+
+	//Offset state used to determine which aim offset to use
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turn in place", meta = (AllowPrivateAccess = "true"))
+	EOffsetState CurrentOffsetState;
 };
