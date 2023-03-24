@@ -56,8 +56,6 @@ void UParagonAnimInstance::UpdateAnimationProperties(float DeltaTime)
 
 	bIsAiming = ParagonCharacter->GetIsAiming();
 
-	TurnInPlace();
-
 	if (bIsReloading)
 	{
 		CurrentOffsetState = EOffsetState::EOS_Reloading;
@@ -74,6 +72,9 @@ void UParagonAnimInstance::UpdateAnimationProperties(float DeltaTime)
 	{
 		CurrentOffsetState = EOffsetState::EOS_Hip;
 	}
+
+	TurnInPlace();
+	Lean(DeltaTime);
 }
 
 void UParagonAnimInstance::NativeInitializeAnimation()
@@ -94,21 +95,21 @@ void UParagonAnimInstance::TurnInPlace()
 	{
 		RootYawOffset = 0.f;
 
-		CharacterYaw = ParagonCharacter->GetActorRotation().Yaw;
-		CharacterYawLastFrame = CharacterYaw;
+		TIPCharacterYaw = ParagonCharacter->GetActorRotation().Yaw;
+		TIPCharacterYawLastFrame = TIPCharacterYaw;
 
 		RotationCurveValue = 0.f;
 		RotationCurveValueLastFrame = 0.f;
 		return;
 	}
 
-	CharacterYawLastFrame = CharacterYaw;
-	CharacterYaw = ParagonCharacter->GetActorRotation().Yaw;
+	TIPCharacterYawLastFrame = TIPCharacterYaw;
+	TIPCharacterYaw = ParagonCharacter->GetActorRotation().Yaw;
 
-	const float YawDelta{ CharacterYaw - CharacterYawLastFrame };
+	const float TIPYawDelta{ TIPCharacterYaw - TIPCharacterYawLastFrame };
 
 	//Root bone Yaw Offset, updated and clamped to [-180, 180]
-	RootYawOffset = UKismetMathLibrary::NormalizeAxis(RootYawOffset - YawDelta);
+	RootYawOffset = UKismetMathLibrary::NormalizeAxis(RootYawOffset - TIPYawDelta);
 	
 	//1.0 if turning animation is playing, 0.0 if not
 	const float TurningCurveValue{ GetCurveValue(TEXT("Turning")) };
@@ -130,4 +131,22 @@ void UParagonAnimInstance::TurnInPlace()
 		const float YawExcess{ ABSRootYawOffset - 90.f };
 		(RootYawOffset > 0 ? RootYawOffset -= YawExcess : RootYawOffset += YawExcess);
 	}
+}
+
+void UParagonAnimInstance::Lean(float DeltaTime)
+{
+	if (!ParagonCharacter)
+		return;
+
+	CharacterYawLastFrame = CharacterYaw;
+	CharacterYaw = ParagonCharacter->GetActorRotation().Yaw;
+
+	const float Target{ (CharacterYaw - CharacterYawLastFrame) / DeltaTime };
+	const float Interp{ FMath::FInterpTo(YawDelta, Target, DeltaTime, 6.f) };
+	YawDelta = FMath::Clamp(Interp, -90.f, 90.f);
+
+	if (!GEngine)
+		return;
+
+	GEngine->AddOnScreenDebugMessage(1, -1.f, FColor::Green, FString::Printf(TEXT("Current yaw delta: %f"), YawDelta));
 }
