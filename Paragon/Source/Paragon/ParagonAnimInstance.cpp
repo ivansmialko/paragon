@@ -13,8 +13,11 @@ UParagonAnimInstance::UParagonAnimInstance() :
 	MovementOffset(0.f),
 	LastMovementOffset(0.f),
 	bIsAiming(false),
-	CharacterYaw(0.f),
-	CharacterYawLastFrame(0.f),
+	TIPCharacterYaw(0.f),
+	TIPCharacterYawLastFrame(0.f),
+	YawDelta(0.f),
+	CharacterRotation(FRotator(0.f)),
+	CharacterRotationLastFrame(FRotator(0.f)),
 	RootYawOffset(0.f),
 	Pitch(0.f),
 	bIsReloading(false),
@@ -138,10 +141,12 @@ void UParagonAnimInstance::Lean(float DeltaTime)
 	if (!ParagonCharacter)
 		return;
 
-	CharacterYawLastFrame = CharacterYaw;
-	CharacterYaw = ParagonCharacter->GetActorRotation().Yaw;
+	CharacterRotationLastFrame = CharacterRotation;
+	CharacterRotation = ParagonCharacter->GetActorRotation();
 
-	const float Target{ (CharacterYaw - CharacterYawLastFrame) / DeltaTime };
+	const FRotator Delta{ UKismetMathLibrary::NormalizedDeltaRotator(CharacterRotation, CharacterRotationLastFrame) };
+
+	const float Target{ Delta.Yaw / DeltaTime };
 	const float Interp{ FMath::FInterpTo(YawDelta, Target, DeltaTime, 6.f) };
 	YawDelta = FMath::Clamp(Interp, -90.f, 90.f);
 
@@ -149,4 +154,5 @@ void UParagonAnimInstance::Lean(float DeltaTime)
 		return;
 
 	GEngine->AddOnScreenDebugMessage(1, -1.f, FColor::Green, FString::Printf(TEXT("Current yaw delta: %f"), YawDelta));
+	GEngine->AddOnScreenDebugMessage(2, -1.f, FColor::Green, FString::Printf(TEXT("Current character yaw delta: %f"), Delta.Yaw));
 }
