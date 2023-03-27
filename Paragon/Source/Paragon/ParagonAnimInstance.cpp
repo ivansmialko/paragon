@@ -76,6 +76,8 @@ void UParagonAnimInstance::UpdateAnimationProperties(float DeltaTime)
 		CurrentOffsetState = EOffsetState::EOS_Hip;
 	}
 
+	bIsCrouching = ParagonCharacter->GetIsCrouching();
+
 	TurnInPlace();
 	Lean(DeltaTime);
 }
@@ -152,7 +154,4 @@ void UParagonAnimInstance::Lean(float DeltaTime)
 
 	if (!GEngine)
 		return;
-
-	GEngine->AddOnScreenDebugMessage(1, -1.f, FColor::Green, FString::Printf(TEXT("Current yaw delta: %f"), YawDelta));
-	GEngine->AddOnScreenDebugMessage(2, -1.f, FColor::Green, FString::Printf(TEXT("Current character yaw delta: %f"), Delta.Yaw));
 }

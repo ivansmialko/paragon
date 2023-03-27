@@ -199,6 +199,9 @@ protected:
 
 	//Checks to see if we have ammo of the equipped EquippedWeapon's ammo type
 	bool IsHaveAmmo();
+
+	void CrouchButtonPressed();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -421,6 +424,10 @@ private:
 	//Scene component to attach to the character's hand during reloading
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	USceneComponent* HandSceneComponent;
+
+	//True when crouching
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	bool bIsCrouching;
 public:
 
 	//Return CameraBoom subobject
@@ -467,4 +474,6 @@ public:
 	void GetPickupItem(AItemBase* Item);
 
 	FORCEINLINE ECombatState GetCombatState() const { return CurrentCombatState; }
+
+	FORCEINLINE bool GetIsCrouching() const { return bIsCrouching; }
 };

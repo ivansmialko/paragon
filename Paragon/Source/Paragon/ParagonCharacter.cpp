@@ -68,7 +68,8 @@ AParagonCharacter::AParagonCharacter() :
 	Starting9mmAmmo(85),
 	StartingARAmmo(120),
 	//Combat variables
-	CurrentCombatState(ECombatState::ECS_Unoccupied)
+	CurrentCombatState(ECombatState::ECS_Unoccupied),
+	bIsCrouching(false)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -700,6 +701,14 @@ bool AParagonCharacter::IsHaveAmmo()
 	return false;
 }
 
+void AParagonCharacter::CrouchButtonPressed()
+{
+	if (GetCharacterMovement()->IsFalling())
+		return;
+
+	bIsCrouching = !bIsCrouching;
+}
+
 // Called every frame
 void AParagonCharacter::Tick(float DeltaTime)
 {
@@ -739,6 +748,8 @@ void AParagonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Select", IE_Released, this, &AParagonCharacter::SelectButtonReleased);
 
 	PlayerInputComponent->BindAction("ReloadButton", IE_Pressed, this, &AParagonCharacter::ReloadButtonPressed);
+
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AParagonCharacter::CrouchButtonPressed);
 }
 
 void AParagonCharacter::GrabClip()
