@@ -21,7 +21,9 @@ UParagonAnimInstance::UParagonAnimInstance() :
 	RootYawOffset(0.f),
 	Pitch(0.f),
 	bIsReloading(false),
-	CurrentOffsetState(EOffsetState::EOS_Hip)
+	CurrentOffsetState(EOffsetState::EOS_Hip),
+	WeaponRecoilWeight(1.f),
+	bIsTurningInPlace(false)
 {
 
 }
@@ -105,36 +107,74 @@ void UParagonAnimInstance::TurnInPlace()
 
 		RotationCurveValue = 0.f;
 		RotationCurveValueLastFrame = 0.f;
-		return;
+	}
+	else
+	{
+		TIPCharacterYawLastFrame = TIPCharacterYaw;
+		TIPCharacterYaw = ParagonCharacter->GetActorRotation().Yaw;
+
+		const float TIPYawDelta{ TIPCharacterYaw - TIPCharacterYawLastFrame };
+
+		//Root bone Yaw Offset, updated and clamped to [-180, 180]
+		RootYawOffset = UKismetMathLibrary::NormalizeAxis(RootYawOffset - TIPYawDelta);
+
+		//1.0 if turning animation is playing, 0.0 if not
+		const float TurningCurveValue{ GetCurveValue(TEXT("Turning")) };
+
+		bIsTurningInPlace = (TurningCurveValue > 0);
+		if (bIsTurningInPlace)
+		{
+			RotationCurveValueLastFrame = RotationCurveValue;
+			RotationCurveValue = GetCurveValue(TEXT("Rotation"));
+
+			const float RotationDelta{ RotationCurveValue - RotationCurveValueLastFrame };
+
+			//RootYawOffset > 0, -> Turning left
+			//RootYawOffset < 0, -> Turning right
+			(RootYawOffset > 0 ? RootYawOffset -= RotationDelta : RootYawOffset += RotationDelta);
+
+			const float ABSRootYawOffset{ FMath::Abs(RootYawOffset) };
+			if (ABSRootYawOffset > 90)
+			{
+				const float YawExcess{ ABSRootYawOffset - 90.f };
+				(RootYawOffset > 0 ? RootYawOffset -= YawExcess : RootYawOffset += YawExcess);
+			}
+		}
 	}
 
-	TIPCharacterYawLastFrame = TIPCharacterYaw;
-	TIPCharacterYaw = ParagonCharacter->GetActorRotation().Yaw;
-
-	const float TIPYawDelta{ TIPCharacterYaw - TIPCharacterYawLastFrame };
-
-	//Root bone Yaw Offset, updated and clamped to [-180, 180]
-	RootYawOffset = UKismetMathLibrary::NormalizeAxis(RootYawOffset - TIPYawDelta);
-	
-	//1.0 if turning animation is playing, 0.0 if not
-	const float TurningCurveValue{ GetCurveValue(TEXT("Turning")) };
-	if (TurningCurveValue <= 0)
-		return;
-
-	RotationCurveValueLastFrame = RotationCurveValue;
-	RotationCurveValue = GetCurveValue(TEXT("Rotation"));
-
-	const float RotationDelta{ RotationCurveValue - RotationCurveValueLastFrame };
-
-	//RootYawOffset > 0, -> Turning left
-	//RootYawOffset < 0, -> Turning right
-	(RootYawOffset > 0 ? RootYawOffset -= RotationDelta : RootYawOffset += RotationDelta);
-
-	const float ABSRootYawOffset{ FMath::Abs(RootYawOffset) };
-	if (ABSRootYawOffset > 90)
+	if (bIsTurningInPlace)
 	{
-		const float YawExcess{ ABSRootYawOffset - 90.f };
-		(RootYawOffset > 0 ? RootYawOffset -= YawExcess : RootYawOffset += YawExcess);
+		WeaponRecoilWeight = 0.f;
+
+		if (bIsReloading)
+		{
+			WeaponRecoilWeight = 1.f;
+		}
+	}
+	else
+	{
+		if (bIsCrouching)
+		{
+			if (bIsReloading)
+			{
+				WeaponRecoilWeight = 1.f;
+			}
+			else
+			{
+				WeaponRecoilWeight = 0.1f;
+			}
+		}
+		else
+		{
+			if (bIsAiming || bIsReloading)
+			{
+				WeaponRecoilWeight = 1.f;
+			}
+			else
+			{
+				WeaponRecoilWeight = 0.5f;
+			}
+		}
 	}
 }
 
