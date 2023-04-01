@@ -17,6 +17,7 @@
 #include "Components/WidgetComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
+#include "Components/CapsuleComponent.h"
 
 #include "DrawDebugHelpers.h"
 #include "ItemBase.h"
@@ -69,7 +70,14 @@ AParagonCharacter::AParagonCharacter() :
 	StartingARAmmo(120),
 	//Combat variables
 	CurrentCombatState(ECombatState::ECS_Unoccupied),
-	bIsCrouching(false)
+	bIsCrouching(false),
+	BaseMovementSpeed(650.f),
+	CrouchMovementSpeed(300.f),
+	CurrentCapsuleHalfHeight(0.f),
+	StandindCapsuleHalfHeight(88.f),
+	CrouchingCapsuleHalfHeight(44.f),
+	BaseGroundFriction(2.0f),
+	CrouchingGroundFriction(100.f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -120,7 +128,7 @@ void AParagonCharacter::BeginPlay()
 	EquipWeapon(SpawnDefaultWeapon());
 
 	InitializeAmmoMap();
-	//UGameplayStatics::GetPlayerController(GetWorld(), 0)->bShowMouseCursor = true;
+	GetCharacterMovement()->MaxWalkSpeed = BaseMovementSpeed;
 }
 
 void AParagonCharacter::MoveForward(float in_value)
@@ -707,7 +715,47 @@ void AParagonCharacter::CrouchButtonPressed()
 		return;
 
 	bIsCrouching = !bIsCrouching;
+	
+	if (bIsCrouching)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = CrouchMovementSpeed;
+		GetCharacterMovement()->GroundFriction = CrouchingGroundFriction;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = BaseMovementSpeed;
+		GetCharacterMovement()->GroundFriction = BaseGroundFriction;
+	}
 }
+
+void AParagonCharacter::Jump()
+{
+	if (bIsCrouching)
+	{
+		bIsCrouching = false;
+		GetCharacterMovement()->MaxWalkSpeed = BaseMovementSpeed;
+	}
+	else
+	{
+		ACharacter::Jump();
+	}
+
+}
+
+void AParagonCharacter::InterpCapsuleHalfHeight(float DeltaTime)
+{
+	float TargetCapsuleHalfHeight = (bIsCrouching ? CrouchingCapsuleHalfHeight : StandindCapsuleHalfHeight);
+	const float InterpHalfHeight{ FMath::FInterpTo(GetCapsuleComponent()->GetScaledCapsuleHalfHeight(), TargetCapsuleHalfHeight, DeltaTime, 20.f) };
+	
+	//Negative value if crouching, positive value if standing
+	float DeltaCapsuleHalfHeight{ InterpHalfHeight - GetCapsuleComponent()->GetScaledCapsuleHalfHeight() };
+
+	const FVector MeshOffset(0.f, 0.f, -DeltaCapsuleHalfHeight);
+	GetMesh()->AddLocalOffset(MeshOffset);
+
+	GetCapsuleComponent()->SetCapsuleHalfHeight(InterpHalfHeight);
+}
+
 
 // Called every frame
 void AParagonCharacter::Tick(float DeltaTime)
@@ -718,6 +766,9 @@ void AParagonCharacter::Tick(float DeltaTime)
 	UpdateLookRates();
 	UpdateCrosshairSpread(DeltaTime);
 	TraceForItems();
+
+	//Interpolate capsule's half height based on crouching/standing
+	InterpCapsuleHalfHeight(DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -735,7 +786,7 @@ void AParagonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis("Turn", this, &AParagonCharacter::Turn);
 	PlayerInputComponent->BindAxis("LookUp", this, &AParagonCharacter::LookUp);
 
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AParagonCharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	PlayerInputComponent->BindAction("FireButton", IE_Pressed, this, &AParagonCharacter::FireButtonPressed);
