@@ -238,6 +238,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ShowClip();
 
+	void StartAiming();
+
+	void StopAiming();
+
 private:
 
 	// Camera boom positioning the camera behind the character
@@ -460,6 +464,9 @@ private:
 	/// Ground friction while crouching
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	float CrouchingGroundFriction;
+
+	/// Used for knowing whether is aiming button pressed
+	bool bIsAimingButtonPressed;
 public:
 
 	//Return CameraBoom subobject

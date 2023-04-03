@@ -77,7 +77,8 @@ AParagonCharacter::AParagonCharacter() :
 	StandindCapsuleHalfHeight(88.f),
 	CrouchingCapsuleHalfHeight(44.f),
 	BaseGroundFriction(2.0f),
-	CrouchingGroundFriction(100.f)
+	CrouchingGroundFriction(100.f),
+	bIsAimingButtonPressed(false)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -269,18 +270,18 @@ bool AParagonCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, 
 
 void AParagonCharacter::SetAimingButtonPressed()
 {
-	bIsAiming = true;
-	GetCharacterMovement()->MaxWalkSpeed = CrouchMovementSpeed;
+	bIsAimingButtonPressed = true;
+
+	if (CurrentCombatState != ECombatState::ECS_ReloadingState)
+	{
+		StartAiming();
+	}
 }
 
 void AParagonCharacter::SetAimingButtonReleased()
 {
-	bIsAiming = false;
-
-	if (!bIsCrouching)
-	{
-		GetCharacterMovement()->MaxWalkSpeed = BaseMovementSpeed;
-	}
+	bIsAimingButtonPressed = false;
+	StopAiming();
 }
 
 void AParagonCharacter::ZoomCameraInterp(float DeltaTime)
@@ -658,6 +659,11 @@ void AParagonCharacter::ReloadWeapon()
 	if (!AnimInstance)
 		return;
 
+	if (bIsAiming)
+	{
+		StopAiming();
+	}
+
 	AnimInstance->Montage_Play(ReloadMontage);
 	AnimInstance->Montage_JumpToSection(EquippedWeapon->GetReloadMontageSection());
 
@@ -698,6 +704,11 @@ void AParagonCharacter::FinishReloading()
 
 	//Update amount of carried ammo
 	AmmoMap.Add(AmmoType, CarriedAmmo);
+
+	if (bIsAimingButtonPressed)
+	{
+		StartAiming();
+	}
 }
 
 bool AParagonCharacter::IsHaveAmmo()
@@ -863,6 +874,22 @@ void AParagonCharacter::ShowClip()
 
 	//Hide the clip bone to show new magazine that have been taken from pocket
 	EquippedWeapon->GetItemMesh()->UnHideBone(ClipBoneIndex);
+}
+
+void AParagonCharacter::StartAiming()
+{
+	bIsAiming = true;
+	GetCharacterMovement()->MaxWalkSpeed = CrouchMovementSpeed;
+}
+
+void AParagonCharacter::StopAiming()
+{
+	bIsAiming = false;
+
+	if (!bIsCrouching)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = BaseMovementSpeed;
+	}
 }
 
 void AParagonCharacter::FireBeginEvent()
