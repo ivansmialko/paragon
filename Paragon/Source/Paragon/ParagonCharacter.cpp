@@ -38,12 +38,12 @@ AParagonCharacter::AParagonCharacter() :
 	//Aiming/not aiming mouse sensitivity
 	MouseHipTurnRate(1.0f),
 	MouseHipLookUpRate(1.0f),
-	MouseAimingTurnRate(0.2f),
-	MouseAimingLookUpRate(0.2f),
+	MouseAimingTurnRate(0.6f),
+	MouseAimingLookUpRate(0.6f),
 	bIsAiming(false),
 	//Combat camera settings
 	CameraDefaultFOV(0.f), //Setting this in begin play
-	CameraZoomFOV(35.f),
+	CameraZoomFOV(25.f),
 	CameraCurrentFOV(0.f),
 	ZoomInterpSpeed(20.f),
 	CameraOffset(FVector(0.f, 50.f, 70.f)),
