@@ -270,11 +270,17 @@ bool AParagonCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, 
 void AParagonCharacter::SetAimingButtonPressed()
 {
 	bIsAiming = true;
+	GetCharacterMovement()->MaxWalkSpeed = CrouchMovementSpeed;
 }
 
 void AParagonCharacter::SetAimingButtonReleased()
 {
 	bIsAiming = false;
+
+	if (!bIsCrouching)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = BaseMovementSpeed;
+	}
 }
 
 void AParagonCharacter::ZoomCameraInterp(float DeltaTime)
