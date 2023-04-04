@@ -73,7 +73,7 @@ protected:
 	 * Sets properties of an Item's components based on state
 	 * @param State Input state, properties will be based on
 	 */
-	void SetItemProperties(EItemState State);
+	virtual void SetItemProperties(EItemState State);
 
 	/**
 	 * Called when interpolation timer is finished
