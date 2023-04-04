@@ -194,4 +194,5 @@ public:
 	
 	FORCEINLINE USoundCue* GetEquipSound() const { return EquipSound; }
 
+	FORCEINLINE int32 GetItemCount() const { return ItemCount; }
 };

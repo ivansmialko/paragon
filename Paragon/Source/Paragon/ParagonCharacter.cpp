@@ -22,6 +22,7 @@
 #include "DrawDebugHelpers.h"
 #include "ItemBase.h"
 #include "Weapon.h"
+#include "Ammo.h"
 
 
 
@@ -892,6 +893,30 @@ void AParagonCharacter::StopAiming()
 	}
 }
 
+void AParagonCharacter::PickupAmmo(class AAmmo* Ammo)
+{
+	int32 AmmoCount{ 0 };
+
+	//Check to see if AmmoMap contains Ammo's AmmoType
+	if (AmmoMap.Find(Ammo->GetAmmoType()))
+	{
+		AmmoCount = AmmoMap[Ammo->GetAmmoType()];
+	}
+
+	AmmoCount += Ammo->GetItemCount();
+	AmmoMap[Ammo->GetAmmoType()] = AmmoCount;
+
+	if (Ammo->GetAmmoType() == EquippedWeapon->GetAmmoType())
+	{
+		if (EquippedWeapon->GetAmmoAmount() == 0)
+		{
+			ReloadWeapon();
+		}
+	}
+
+	Ammo->Destroy(); 
+}
+
 void AParagonCharacter::FireBeginEvent()
 {
 	FireButtonPressed();
@@ -960,11 +985,19 @@ FVector AParagonCharacter::GetCameraInterpLocation()
 
 void AParagonCharacter::GetPickupItem(AItemBase* Item)
 {
-	auto Weapon = Cast<AWeapon>(Item);
-	if (!Weapon)
-		return;
 
-	SwapWeapon(Weapon);
+	auto Weapon = Cast<AWeapon>(Item);
+	if (Weapon)
+	{
+		SwapWeapon(Weapon);
+		return;
+	}
+	auto Ammo = Cast<AAmmo>(Item);
+	if (Ammo)
+	{
+		PickupAmmo(Ammo);
+		return;
+	}
 
 	if (!Item->GetEquipSound())
 		return;

@@ -242,6 +242,7 @@ public:
 
 	void StopAiming();
 
+	void PickupAmmo(class AAmmo* Ammo);
 private:
 
 	// Camera boom positioning the camera behind the character
