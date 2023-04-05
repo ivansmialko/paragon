@@ -5,6 +5,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Components/SphereComponent.h"	
+#include "ParagonCharacter.h"
 
 AAmmo::AAmmo()
 {
@@ -16,6 +17,11 @@ AAmmo::AAmmo()
 	GetCollisionBox()->SetupAttachment(GetRootComponent());
 	GetPickupWidget()->SetupAttachment(GetRootComponent());
 	GetAreaSphere()->SetupAttachment(GetRootComponent());
+
+	AmmoCollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AmmoCollisionSphere"));
+	AmmoCollisionSphere->SetupAttachment(GetRootComponent());
+	AmmoCollisionSphere->SetSphereRadius(50.f);
+	AmmoCollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AAmmo::OnCollisionSphereBeginOverlap);
 }
 
 void AAmmo::Tick(float DeltaTime)
@@ -78,4 +84,17 @@ void AAmmo::SetItemProperties(EItemState State)
 	case EItemState::EIS_MAX:
 		break;
 	}
+}
+
+void AAmmo::OnCollisionSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!OtherActor)
+		return;
+
+	auto ParagonCharacter = Cast<AParagonCharacter>(OtherActor);
+	if (!ParagonCharacter)
+		return;
+
+	StartItemFlying(ParagonCharacter);
+	AmmoCollisionSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }

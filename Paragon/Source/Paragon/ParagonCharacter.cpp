@@ -527,11 +527,6 @@ void AParagonCharacter::SelectButtonPressed()
 		return;
 
 	TraceHitItem->StartItemFlying(this);
-
-	if (!TraceHitItem->GetPickupSound())
-		return;
-
-	UGameplayStatics::PlaySound2D(GetWorld(), TraceHitItem->GetPickupSound());
 }
 
 void AParagonCharacter::SelectButtonReleased()
