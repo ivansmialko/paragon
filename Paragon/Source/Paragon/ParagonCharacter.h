@@ -17,6 +17,20 @@ enum class ECombatState : uint8
 	ECS_MAX UMETA(DisplayName = "DefaultMax")
 };
 
+USTRUCT(BlueprintType)
+struct FInterpLocation
+{
+	GENERATED_BODY()
+
+	/// Scene component to use its location for interping
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	USceneComponent* SceneComponent;
+
+	/// Number of items interping to/at this location
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int32 ItemCount; 
+};
+
 UCLASS()
 class PARAGON_API AParagonCharacter : public ACharacter
 {
@@ -243,6 +257,8 @@ public:
 	void StopAiming();
 
 	void PickupAmmo(class AAmmo* Ammo);
+
+	void InitializeInterpLocations();
 private:
 
 	// Camera boom positioning the camera behind the character
@@ -489,6 +505,10 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	USceneComponent* InterpPlaceWeapon;
+
+	/// Array of interp location structs
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	TArray<FInterpLocation> InterpLocations;
 public:
 
 	//Return CameraBoom subobject
@@ -537,4 +557,12 @@ public:
 	FORCEINLINE ECombatState GetCombatState() const { return CurrentCombatState; }
 
 	FORCEINLINE bool GetIsCrouching() const { return bIsCrouching; }
+
+	FInterpLocation GetInterpLocation(int32 Index);
+
+	/// Returns the index in interplocations array with the lowest item count
+	/// E.g. Search for the less busy place to interp to
+	int32 GetInterpLocationIndex();
+
+	void IncrementInterpLocationCount(int32 Index, int32 Amount);
 };

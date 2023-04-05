@@ -23,7 +23,9 @@ AItemBase::AItemBase() :
 	bIsInterping(false),
 	ItemInterpX(0.f),
 	ItemInterpY(0.f),
-	InterpInitalYawOffset(0.f)
+	InterpInitalYawOffset(0.f),
+	ItemType(EItemType::EIT_MAX),
+	InterpLocationIndex(0)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -240,6 +242,8 @@ void AItemBase::FinishFlying()
 	if (!PlayerCharacter)
 		return;
 
+	PlayerCharacter->IncrementInterpLocationCount(InterpLocationIndex, -1);
+
 	PlayerCharacter->GetPickupItem(this);
 	bIsInterping = false;
 
@@ -268,7 +272,7 @@ void AItemBase::ItemInterp(float DeltaTime)
 	FVector ItemLocation = ItemInterpStartLocation;
 
 	//Get location in front of the camera
-	const FVector CameraInterpLocation{ PlayerCharacter->GetCameraInterpLocation() };
+	const FVector CameraInterpLocation{ GetInterpLocation() };
 
 	//Vector from Item to CameraInterpLocation, X and Y are zeroed out
 	const FVector ItemToCameraDelta{ FVector(0.f, 0.f, (CameraInterpLocation - ItemLocation).Z) };
@@ -314,6 +318,28 @@ void AItemBase::PlayPickupSound()
 	UGameplayStatics::PlaySound2D(GetWorld(), GetPickupSound());
 }
 
+FVector AItemBase::GetInterpLocation()
+{
+	if (!PlayerCharacter)
+		return FVector();
+
+	switch (ItemType)
+	{
+	case EItemType::EIT_Weapon:
+	{
+		return PlayerCharacter->GetInterpLocation(0).SceneComponent->GetComponentLocation();
+	}
+	break;
+	case EItemType::EIT_Ammo:
+	{
+		return PlayerCharacter->GetInterpLocation(InterpLocationIndex).SceneComponent->GetComponentLocation();
+	}
+	break;
+	}
+
+	return FVector();
+}
+
 // Called every frame
 void AItemBase::Tick(float DeltaTime)
 {
@@ -331,6 +357,10 @@ void AItemBase::UpdateItemProperties()
 void AItemBase::StartItemFlying(AParagonCharacter* Character)
 {
 	PlayerCharacter = Character;
+
+	/// Get free or the less busy place to interp to
+	InterpLocationIndex = Character->GetInterpLocationIndex();
+	Character->IncrementInterpLocationCount(InterpLocationIndex, 1);
 
 	//Store initial location of the item
 	ItemInterpStartLocation = GetActorLocation();
