@@ -86,6 +86,10 @@ protected:
 	 */
 	void ItemInterp(float DeltaTime);
 
+	/**
+	 * Play sound of picking the item
+	 */
+	void PlayPickupSound();
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

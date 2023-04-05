@@ -18,6 +18,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/SceneComponent.h"
 
 #include "DrawDebugHelpers.h"
 #include "ItemBase.h"
@@ -109,6 +110,24 @@ AParagonCharacter::AParagonCharacter() :
 
 	//Create Hand Scene component
 	HandSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("HandSceneComp"));
+
+	// Create a scene component that will be used to interpolate weapon position to
+	InterpPlaceWeapon = CreateDefaultSubobject<USceneComponent>(TEXT("Weapon Interpolation destination place"));
+	InterpPlaceWeapon->SetupAttachment(GetFollowCamera());
+
+	// Create a scene component that will be used to interpolate different items' position to
+	InterpPlace1 = CreateDefaultSubobject<USceneComponent>(TEXT("Interpolation place #1"));
+	InterpPlace1->SetupAttachment(GetFollowCamera());
+	InterpPlace2 = CreateDefaultSubobject<USceneComponent>(TEXT("Interpolation place #2"));
+	InterpPlace2->SetupAttachment(GetFollowCamera());
+	InterpPlace3 = CreateDefaultSubobject<USceneComponent>(TEXT("Interpolation place #3"));
+	InterpPlace3->SetupAttachment(GetFollowCamera());
+	InterpPlace4 = CreateDefaultSubobject<USceneComponent>(TEXT("Interpolation place #4"));
+	InterpPlace4->SetupAttachment(GetFollowCamera());
+	InterpPlace5 = CreateDefaultSubobject<USceneComponent>(TEXT("Interpolation place #5"));
+	InterpPlace5->SetupAttachment(GetFollowCamera());
+	InterpPlace6 = CreateDefaultSubobject<USceneComponent>(TEXT("Interpolation place #6"));
+	InterpPlace6->SetupAttachment(GetFollowCamera());
 }
 
 // Called when the game starts or when spawned
@@ -527,11 +546,6 @@ void AParagonCharacter::SelectButtonPressed()
 		return;
 
 	TraceHitItem->StartItemFlying(this);
-
-	if (!TraceHitItem->GetPickupSound())
-		return;
-
-	UGameplayStatics::PlaySound2D(GetWorld(), TraceHitItem->GetPickupSound());
 }
 
 void AParagonCharacter::SelectButtonReleased()

@@ -7,6 +7,8 @@
 #include "Components/WidgetComponent.h"
 #include "Components/SphereComponent.h"	
 #include "ParagonCharacter.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 AItemBase::AItemBase() :
@@ -304,6 +306,14 @@ void AItemBase::ItemInterp(float DeltaTime)
 	SetActorScale3D(FVector(CurrScaleCurveValue, CurrScaleCurveValue, CurrScaleCurveValue));
 }
 
+void AItemBase::PlayPickupSound()
+{
+	if (!GetPickupSound())
+		return;
+
+	UGameplayStatics::PlaySound2D(GetWorld(), GetPickupSound());
+}
+
 // Called every frame
 void AItemBase::Tick(float DeltaTime)
 {
@@ -337,5 +347,7 @@ void AItemBase::StartItemFlying(AParagonCharacter* Character)
 
 	//Inital Yaw offste between Camera and Item
 	InterpInitalYawOffset = ItemRotationYaw - CameraRotationYaw;
+
+	PlayPickupSound();
 } 
 
