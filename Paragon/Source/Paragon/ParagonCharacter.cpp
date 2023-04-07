@@ -80,7 +80,11 @@ AParagonCharacter::AParagonCharacter() :
 	CrouchingCapsuleHalfHeight(44.f),
 	BaseGroundFriction(2.0f),
 	CrouchingGroundFriction(100.f),
-	bIsAimingButtonPressed(false)
+	bIsAimingButtonPressed(false),
+	bIsShouldPlayEquipSound(true),
+	bIsShouldPlayPickUpSound(true),
+	PickUpSoundResetTime(0.2f),
+	EquipSoundResetTime(0.2f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -819,6 +823,18 @@ void AParagonCharacter::IncrementInterpLocationCount(int32 Index, int32 Amount)
 	InterpLocations[Index].ItemCount += Amount;
 }
 
+void AParagonCharacter::StartPickUpSoundTimer()
+{
+	bIsShouldPlayPickUpSound = false;
+	GetWorldTimerManager().SetTimer(PickUpSoundTimer, this, &AParagonCharacter::ResetPickUpSoundTimer, PickUpSoundResetTime);
+}
+
+void AParagonCharacter::StartEquipSoundTimer()
+{
+	bIsShouldPlayEquipSound = false;
+	GetWorldTimerManager().SetTimer(EquipSoundTimer, this, &AParagonCharacter::ResetEquipSoundTimer, EquipSoundResetTime);
+}
+
 // Called every frame
 void AParagonCharacter::Tick(float DeltaTime)
 {
@@ -985,6 +1001,16 @@ void AParagonCharacter::InitializeInterpLocations()
 	InterpLocations.Add(InterpLoc6);
 }
 
+void AParagonCharacter::ResetPickUpSoundTimer()
+{
+	bIsShouldPlayPickUpSound = true;
+}
+
+void AParagonCharacter::ResetEquipSoundTimer()
+{
+	bIsShouldPlayEquipSound = true;
+}
+
 void AParagonCharacter::FireBeginEvent()
 {
 	FireButtonPressed();
@@ -1065,10 +1091,7 @@ void AParagonCharacter::GetPickupItem(AItemBase* Item)
 		PickupAmmo(Ammo);
 	}
 
-	if (!Item->GetEquipSound())
-		return;
-
-	UGameplayStatics::PlaySound2D(this, Item->GetEquipSound());
+	Item->PlayEquipSound();
 }
 
 FInterpLocation AParagonCharacter::GetInterpLocation(int32 Index)

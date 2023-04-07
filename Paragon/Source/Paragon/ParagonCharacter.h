@@ -221,6 +221,10 @@ protected:
 	/// Interps capsule half height when crouching/standing
 	void InterpCapsuleHalfHeight(float DeltaTime);
 
+	void ResetPickUpSoundTimer();
+
+	void ResetEquipSoundTimer();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -509,6 +513,22 @@ private:
 	/// Array of interp location structs
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TArray<FInterpLocation> InterpLocations;
+
+	FTimerHandle PickUpSoundTimer;
+
+	FTimerHandle EquipSoundTimer;
+
+	bool bIsShouldPlayPickUpSound;
+
+	bool bIsShouldPlayEquipSound;
+
+	/// Time to wait before we can play another equip sound
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
+	float EquipSoundResetTime;
+
+	/// Time to wait before we can play another pick up sound
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
+	float PickUpSoundResetTime;
 public:
 
 	//Return CameraBoom subobject
@@ -565,4 +585,13 @@ public:
 	int32 GetInterpLocationIndex();
 
 	void IncrementInterpLocationCount(int32 Index, int32 Amount);
+
+	FORCEINLINE bool GetIsShouldPlayPickUpSound() const { return bIsShouldPlayPickUpSound; }
+
+	FORCEINLINE bool GetIsShouldPlayEquipSound() const { return bIsShouldPlayEquipSound; }
+
+	void StartPickUpSoundTimer();
+
+	void StartEquipSoundTimer();
+
 };

@@ -312,10 +312,32 @@ void AItemBase::ItemInterp(float DeltaTime)
 
 void AItemBase::PlayPickupSound()
 {
+	if (!PlayerCharacter)
+		return;
+
 	if (!GetPickupSound())
 		return;
 
+	if (!PlayerCharacter->GetIsShouldPlayPickUpSound())
+		return;
+
 	UGameplayStatics::PlaySound2D(GetWorld(), GetPickupSound());
+	PlayerCharacter->StartPickUpSoundTimer();
+}
+
+void AItemBase::PlayEquipSound()
+{
+	if (!PlayerCharacter)
+		return;
+
+	if (!GetEquipSound())
+		return;
+
+	if (!PlayerCharacter->GetIsShouldPlayEquipSound())
+		return;
+
+	UGameplayStatics::PlaySound2D(GetWorld(), GetEquipSound());
+	PlayerCharacter->StartEquipSoundTimer();
 }
 
 FVector AItemBase::GetInterpLocation()
