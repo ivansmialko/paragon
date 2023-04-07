@@ -80,7 +80,11 @@ AParagonCharacter::AParagonCharacter() :
 	CrouchingCapsuleHalfHeight(44.f),
 	BaseGroundFriction(2.0f),
 	CrouchingGroundFriction(100.f),
-	bIsAimingButtonPressed(false)
+	bIsAimingButtonPressed(false),
+	bIsShouldPlayEquipSound(true),
+	bIsShouldPlayPickUpSound(true),
+	PickUpSoundResetTime(0.2f),
+	EquipSoundResetTime(0.2f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -150,6 +154,9 @@ void AParagonCharacter::BeginPlay()
 
 	InitializeAmmoMap();
 	GetCharacterMovement()->MaxWalkSpeed = BaseMovementSpeed;
+
+	//Create FInterpLocation structs for each interp location components
+	InitializeInterpLocations();
 }
 
 void AParagonCharacter::MoveForward(float in_value)
@@ -789,6 +796,45 @@ void AParagonCharacter::InterpCapsuleHalfHeight(float DeltaTime)
 }
 
 
+int32 AParagonCharacter::GetInterpLocationIndex()
+{
+	int32 LowestIndex = 1;
+	int32 LowestCount = INT_MAX;
+	for (int32 i = 1; i < InterpLocations.Num(); i++)
+	{
+		if (InterpLocations[i].ItemCount < LowestCount)
+		{
+			LowestIndex = i;
+			LowestCount = InterpLocations[i].ItemCount;
+		}
+	}
+
+	return LowestIndex;
+}
+
+void AParagonCharacter::IncrementInterpLocationCount(int32 Index, int32 Amount)
+{
+	if (Amount < -1 || Amount > 1)
+		return;
+
+	if (Index >= InterpLocations.Num())
+		return;
+
+	InterpLocations[Index].ItemCount += Amount;
+}
+
+void AParagonCharacter::StartPickUpSoundTimer()
+{
+	bIsShouldPlayPickUpSound = false;
+	GetWorldTimerManager().SetTimer(PickUpSoundTimer, this, &AParagonCharacter::ResetPickUpSoundTimer, PickUpSoundResetTime);
+}
+
+void AParagonCharacter::StartEquipSoundTimer()
+{
+	bIsShouldPlayEquipSound = false;
+	GetWorldTimerManager().SetTimer(EquipSoundTimer, this, &AParagonCharacter::ResetEquipSoundTimer, EquipSoundResetTime);
+}
+
 // Called every frame
 void AParagonCharacter::Tick(float DeltaTime)
 {
@@ -931,6 +977,40 @@ void AParagonCharacter::PickupAmmo(class AAmmo* Ammo)
 	Ammo->Destroy(); 
 }
 
+void AParagonCharacter::InitializeInterpLocations()
+{
+	FInterpLocation WeaponLocation{ InterpPlaceWeapon, 0 };
+	InterpLocations.Add(WeaponLocation);
+
+	FInterpLocation InterpLoc1{ InterpPlace1, 0 };
+	InterpLocations.Add(InterpLoc1);
+
+	FInterpLocation InterpLoc2{ InterpPlace2, 0 };
+	InterpLocations.Add(InterpLoc2);
+
+	FInterpLocation InterpLoc3{ InterpPlace3, 0 };
+	InterpLocations.Add(InterpLoc3);
+
+	FInterpLocation InterpLoc4{ InterpPlace4, 0 };
+	InterpLocations.Add(InterpLoc4);
+
+	FInterpLocation InterpLoc5{ InterpPlace5, 0 };
+	InterpLocations.Add(InterpLoc5);
+
+	FInterpLocation InterpLoc6{ InterpPlace6, 0 };
+	InterpLocations.Add(InterpLoc6);
+}
+
+void AParagonCharacter::ResetPickUpSoundTimer()
+{
+	bIsShouldPlayPickUpSound = true;
+}
+
+void AParagonCharacter::ResetEquipSoundTimer()
+{
+	bIsShouldPlayEquipSound = true;
+}
+
 void AParagonCharacter::FireBeginEvent()
 {
 	FireButtonPressed();
@@ -1004,17 +1084,20 @@ void AParagonCharacter::GetPickupItem(AItemBase* Item)
 	if (Weapon)
 	{
 		SwapWeapon(Weapon);
-		return;
 	}
 	auto Ammo = Cast<AAmmo>(Item);
 	if (Ammo)
 	{
 		PickupAmmo(Ammo);
-		return;
 	}
 
-	if (!Item->GetEquipSound())
-		return;
+	Item->PlayEquipSound();
+}
 
-	UGameplayStatics::PlaySound2D(this, Item->GetEquipSound());
+FInterpLocation AParagonCharacter::GetInterpLocation(int32 Index)
+{
+	if (Index >= InterpLocations.Num())
+		return FInterpLocation();
+
+	return InterpLocations[Index];
 }

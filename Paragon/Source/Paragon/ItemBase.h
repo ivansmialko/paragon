@@ -30,6 +30,14 @@ enum class EItemState : uint8
 	EIS_MAX UMETA(DisplayName = "DefaultMAX")
 };
 
+UENUM(BlueprintType)
+enum class EItemType : uint8
+{
+	EIT_Weapon UMETA(DisplayName = "Weapon"),
+	EIT_Ammo UMETA(DisplayName = "Ammo"),
+
+	EIT_MAX UMETA(DisplayName = "DefaultMAX")
+};
 
 UCLASS()
 class PARAGON_API AItemBase : public AActor
@@ -90,10 +98,19 @@ protected:
 	 * Play sound of picking the item
 	 */
 	void PlayPickupSound();
+
+	/**
+	 * Get interp location based on the item type
+	 */
+	FVector GetInterpLocation();
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	/**
+	* Play sound of equipping the item
+	*/
+	void PlayEquipSound();
 private:
 	//Skeletal mesh for the item
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
@@ -176,6 +193,13 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	USoundCue* EquipSound;
 
+	/// Enum for the current item type
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	EItemType ItemType;
+
+	/// Index of the interp location this item is interping to
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	int32 InterpLocationIndex;
 public:
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupInfoWidget; }
 
