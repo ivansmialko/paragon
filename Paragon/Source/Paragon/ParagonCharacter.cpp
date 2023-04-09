@@ -24,6 +24,7 @@
 #include "ItemBase.h"
 #include "Weapon.h"
 #include "Ammo.h"
+#include "ImpactPoint.h"
 
 
 
@@ -617,6 +618,8 @@ void AParagonCharacter::FireSendBullet()
 
 		//Spawn impact particles
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, ImpactPoint);
+
+		SpawnImpactPoint(ImpactPoint);
 	}
 
 	if (!BeamParticles)
@@ -999,6 +1002,18 @@ void AParagonCharacter::InitializeInterpLocations()
 
 	FInterpLocation InterpLoc6{ InterpPlace6, 0 };
 	InterpLocations.Add(InterpLoc6);
+}
+
+void AParagonCharacter::SpawnImpactPoint(const FVector& ImpactPlace)
+{
+	if (!WeaponImpactPointClass)
+		return;
+
+	//Spawn the weapon
+	AImpactPoint* ImpactPoint = GetWorld()->SpawnActor<AImpactPoint>(WeaponImpactPointClass);
+	ImpactPoint->SetImpactAmount(50);
+	ImpactPoint->SetActorLocation(ImpactPlace);
+	ImpactPoint->SetLifeSpan(0.5f);
 }
 
 void AParagonCharacter::ResetPickUpSoundTimer()

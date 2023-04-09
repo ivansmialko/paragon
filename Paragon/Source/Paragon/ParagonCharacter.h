@@ -263,6 +263,8 @@ public:
 	void PickupAmmo(class AAmmo* Ammo);
 
 	void InitializeInterpLocations();
+
+	void SpawnImpactPoint(const FVector& ImpactPlace);
 private:
 
 	// Camera boom positioning the camera behind the character
@@ -529,6 +531,10 @@ private:
 	/// Time to wait before we can play another pick up sound
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
 	float PickUpSoundResetTime;
+
+	//Class of Impact Point to spawn it in the place of bullet impact
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Environment, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class AImpactPoint> WeaponImpactPointClass;
 public:
 
 	//Return CameraBoom subobject
