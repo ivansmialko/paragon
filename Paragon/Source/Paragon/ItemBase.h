@@ -103,6 +103,7 @@ protected:
 	 * Get interp location based on the item type
 	 */
 	FVector GetInterpLocation();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -223,4 +224,10 @@ public:
 	FORCEINLINE USoundCue* GetEquipSound() const { return EquipSound; }
 
 	FORCEINLINE int32 GetItemCount() const { return ItemCount; }
+
+	virtual void EnableCustomDepth();
+
+	virtual void DisableCustomDepth();
+
+	virtual void InitializeCustomDepth();
 };

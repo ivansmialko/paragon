@@ -65,6 +65,9 @@ void AItemBase::BeginPlay()
 
 	//Set Item properties based on ItemState
 	SetItemProperties(ItemState);
+
+	// Set CustomDepth to disabled by default
+	InitializeCustomDepth();
 }
 
 void AItemBase::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent,
@@ -360,6 +363,21 @@ FVector AItemBase::GetInterpLocation()
 	}
 
 	return FVector();
+}
+
+void AItemBase::EnableCustomDepth()
+{
+	ItemMesh->SetRenderCustomDepth(true);
+}
+
+void AItemBase::DisableCustomDepth()
+{
+	ItemMesh->SetRenderCustomDepth(false);
+}
+
+void AItemBase::InitializeCustomDepth()
+{
+	DisableCustomDepth();
 }
 
 // Called every frame
