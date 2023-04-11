@@ -49,6 +49,8 @@ void AWeapon::ThrowWeapon()
 
 	bIsFalling = true;
 	GetWorldTimerManager().SetTimer(ThrowWeaponTimer, this, &AWeapon::StopFalling, ThrowWeaponTime); 
+
+	EnableGlowMaterial();
 }
 
 void AWeapon::DecrementAmmoAmount()

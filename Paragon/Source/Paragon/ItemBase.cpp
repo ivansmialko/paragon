@@ -26,7 +26,8 @@ AItemBase::AItemBase() :
 	InterpInitalYawOffset(0.f),
 	ItemType(EItemType::EIT_MAX),
 	InterpLocationIndex(0),
-	MaterialIndex(0)
+	MaterialIndex(0),
+	bIsCanChangeCustomDepth(true)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -254,6 +255,8 @@ void AItemBase::FinishFlying()
 	//Set scale back to normal
 	SetActorScale3D(FVector(1.f));
 
+	bIsCanChangeCustomDepth = true;
+
 	DisableGlowMaterial();
 	DisableCustomDepth();
 }
@@ -401,11 +404,17 @@ void AItemBase::DisableGlowMaterial()
 
 void AItemBase::EnableCustomDepth()
 {
+	if (!bIsCanChangeCustomDepth)
+		return;
+
 	ItemMesh->SetRenderCustomDepth(true);
 }
 
 void AItemBase::DisableCustomDepth()
 {
+	if (!bIsCanChangeCustomDepth)
+		return;
+
 	ItemMesh->SetRenderCustomDepth(false);
 }
 
@@ -453,5 +462,7 @@ void AItemBase::StartItemFlying(AParagonCharacter* Character)
 	InterpInitalYawOffset = ItemRotationYaw - CameraRotationYaw;
 
 	PlayPickupSound();
+
+	bIsCanChangeCustomDepth = false;
 } 
 
