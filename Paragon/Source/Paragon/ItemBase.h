@@ -104,6 +104,12 @@ protected:
 	 */
 	FVector GetInterpLocation();
 
+	virtual void OnConstruction(const FTransform& Transform) override;
+
+	void EnableGlowMaterial();
+
+	void DisableGlowMaterial();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -201,6 +207,18 @@ private:
 	/// Index of the interp location this item is interping to
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	int32 InterpLocationIndex;
+
+	/// Index for the material we'd like to change at runtime
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	int32 MaterialIndex;
+
+	/// Dynamic instance that we can change at runtime
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	UMaterialInstanceDynamic* DynamicMaterialInstance;
+
+	/// Material instance used with the Dynamic Material Instance
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	UMaterialInstance* MaterialInstance;
 public:
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupInfoWidget; }
 

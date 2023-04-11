@@ -25,7 +25,8 @@ AItemBase::AItemBase() :
 	ItemInterpY(0.f),
 	InterpInitalYawOffset(0.f),
 	ItemType(EItemType::EIT_MAX),
-	InterpLocationIndex(0)
+	InterpLocationIndex(0),
+	MaterialIndex(0)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -252,6 +253,9 @@ void AItemBase::FinishFlying()
 
 	//Set scale back to normal
 	SetActorScale3D(FVector(1.f));
+
+	DisableGlowMaterial();
+	DisableCustomDepth();
 }
 
 void AItemBase::ItemInterp(float DeltaTime)
@@ -363,6 +367,36 @@ FVector AItemBase::GetInterpLocation()
 	}
 
 	return FVector();
+}
+
+void AItemBase::OnConstruction(const FTransform& Transform)
+{
+	if (!MaterialInstance)
+		return;
+
+	DynamicMaterialInstance = UMaterialInstanceDynamic::Create(MaterialInstance, this);
+	ItemMesh->SetMaterial(MaterialIndex, DynamicMaterialInstance);
+	EnableGlowMaterial();
+}
+
+void AItemBase::EnableGlowMaterial()
+{
+	if (!DynamicMaterialInstance)
+		return;
+
+	const FName& ParameterName{ TEXT("GlowBlendAlpha") };
+
+	DynamicMaterialInstance->SetScalarParameterValue(ParameterName, 0);
+}
+
+void AItemBase::DisableGlowMaterial()
+{
+	if (!DynamicMaterialInstance)
+		return;
+
+	const FName& ParameterName{ TEXT("GlowBlendAlpha") };
+
+	DynamicMaterialInstance->SetScalarParameterValue(ParameterName, 1);
 }
 
 void AItemBase::EnableCustomDepth()
