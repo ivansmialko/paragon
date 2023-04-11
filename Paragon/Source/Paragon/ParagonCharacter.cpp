@@ -475,6 +475,9 @@ void AParagonCharacter::TraceForItems()
 		if (TraceHitLastFrame)
 		{
 			TraceHitLastFrame->GetPickupWidget()->SetVisibility(false);
+
+			//Disable border glow for an item
+			TraceHitLastFrame->DisableCustomDepth();
 		}
 
 		return;
@@ -489,6 +492,9 @@ void AParagonCharacter::TraceForItems()
 		{
 			//Shot Item's pick up widget
 			TraceHitItem->GetPickupWidget()->SetVisibility(true);
+
+			//Enable border glow for an item
+			TraceHitItem->EnableCustomDepth();
 		}
 		
 		//We hit an AItemBase last frame
@@ -496,6 +502,9 @@ void AParagonCharacter::TraceForItems()
 		{
 			//We are hitting a different AItemBase this frame from last frame
 			TraceHitLastFrame->GetPickupWidget()->SetVisibility(false);
+
+			//Disable border glow for an item
+			TraceHitLastFrame->DisableCustomDepth();
 		}
 
 		TraceHitLastFrame = TraceHitItem;
