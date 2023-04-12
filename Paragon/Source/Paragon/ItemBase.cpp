@@ -260,6 +260,7 @@ void AItemBase::FinishFlying()
 
 	PlayerCharacter->GetPickupItem(this);
 	bIsInterping = false;
+	SetItemState(EItemState::EIS_PickedUp);
 
 	//Set scale back to normal
 	SetActorScale3D(FVector(1.f));
@@ -401,19 +402,41 @@ void AItemBase::ResetPulseTimer()
 
 void AItemBase::UpdatePulse()
 {
-	if (ItemState != EItemState::EIS_PickUp)
+	if (!DynamicMaterialInstance)
 		return;
 
-	if (!PulseCurve)
-		return;
+	static const FName GlowParameterName = TEXT("GlowAmount");
+	static const FName FresnelExponentParameterName = TEXT("FresnelExponent");
+	static const FName FresnelReflectFractionParameterName = TEXT("FresnelReflectFraction");
 
-	const float ElapsedTime{ GetWorldTimerManager().GetTimerElapsed(PulseTimer) };
-	
-	const FVector CurrentCurveValue{ PulseCurve->GetVectorValue(ElapsedTime) };
+	float ElapsedTime{};
+	FVector CurrentCurveValue{};
 
-	const FName GlowParameterName = TEXT("GlowAmount");
-	const FName FresnelExponentParameterName = TEXT("FresnelExponent");
-	const FName FresnelReflectFractionParameterName = TEXT("FresnelReflectFraction");
+	switch (ItemState)
+	{
+	case EItemState::EIS_PickUp:
+	{
+		if (!PulseCurve)
+			return;
+
+		ElapsedTime = GetWorldTimerManager().GetTimerElapsed(PulseTimer);
+		CurrentCurveValue = PulseCurve->GetVectorValue(ElapsedTime);
+
+		break;
+	}
+	case EItemState::EIS_EquipInterping:
+	{
+		if (!PulseInterpCurve)
+			return;
+
+		ElapsedTime = GetWorldTimerManager().GetTimerElapsed(ItemInterpTimer);
+		CurrentCurveValue = PulseInterpCurve->GetVectorValue(ElapsedTime);
+
+		break;
+	}
+	default:
+		break;
+	}
 
 	DynamicMaterialInstance->SetScalarParameterValue(GlowParameterName, CurrentCurveValue.X * GlowAmount);
 	DynamicMaterialInstance->SetScalarParameterValue(FresnelExponentParameterName, CurrentCurveValue.Y * FresnelExponent);
@@ -491,6 +514,7 @@ void AItemBase::StartItemFlying(AParagonCharacter* Character)
 	bIsInterping = true;
 	SetItemState(EItemState::EIS_EquipInterping);
 
+	GetWorldTimerManager().ClearTimer(PulseTimer);
 	GetWorldTimerManager().SetTimer(ItemInterpTimer, this, &AItemBase::FinishFlying, InterpTimerDuration);
 
 	//Get initial Yaw of the Camera
