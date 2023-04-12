@@ -106,9 +106,9 @@ protected:
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 
-	void EnableGlowMaterial();
+	void ResetPulseTimer();
 
-	void DisableGlowMaterial();
+	void UpdatePulse();
 
 public:	
 	// Called every frame
@@ -221,6 +221,28 @@ private:
 	UMaterialInstance* MaterialInstance;
 
 	bool bIsCanChangeCustomDepth;
+
+	/// Curve to drive the dynamic material parameters
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	class UCurveVector* PulseCurve;
+
+	FTimerHandle PulseTimer;
+
+	/// Time for the pulse timer
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	float PulseCurveTime;
+
+	/// Parameter of glow material instance
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	float GlowAmount;
+
+	/// Parameter of glow material instance
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	float FresnelExponent;
+
+	/// Parameter of glow material instance
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	float FresnelReflectFraction;
 public:
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupInfoWidget; }
 
@@ -250,4 +272,8 @@ public:
 	virtual void DisableCustomDepth();
 
 	virtual void InitializeCustomDepth();
+
+	void EnableGlowMaterial();
+
+	void DisableGlowMaterial();
 };

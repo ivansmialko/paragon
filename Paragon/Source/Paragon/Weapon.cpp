@@ -79,4 +79,6 @@ void AWeapon::StopFalling()
 	bIsFalling = false;
 	SetItemState(EItemState::EIS_PickUp);
 	UpdateItemProperties();
+
+	ResetPulseTimer();
 }
