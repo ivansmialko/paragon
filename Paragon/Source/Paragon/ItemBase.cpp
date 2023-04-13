@@ -9,6 +9,7 @@
 #include "ParagonCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
+#include "Curves/CurveVector.h"
 
 // Sets default values
 AItemBase::AItemBase() :
@@ -26,7 +27,13 @@ AItemBase::AItemBase() :
 	InterpInitalYawOffset(0.f),
 	ItemType(EItemType::EIT_MAX),
 	InterpLocationIndex(0),
-	MaterialIndex(0)
+	MaterialIndex(0),
+	bIsCanChangeCustomDepth(true),
+	// Dymanic material parameters
+	GlowAmount(50.f),
+	FresnelExponent(3.f),
+	FresnelReflectFraction(4.f),
+	PulseCurveTime(4.f)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -69,6 +76,9 @@ void AItemBase::BeginPlay()
 
 	// Set CustomDepth to disabled by default
 	InitializeCustomDepth();
+
+	// Start infinite looping timer to pulse dynamic material of glow
+	ResetPulseTimer();
 }
 
 void AItemBase::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent,
@@ -250,9 +260,12 @@ void AItemBase::FinishFlying()
 
 	PlayerCharacter->GetPickupItem(this);
 	bIsInterping = false;
+	SetItemState(EItemState::EIS_PickedUp);
 
 	//Set scale back to normal
 	SetActorScale3D(FVector(1.f));
+
+	bIsCanChangeCustomDepth = true;
 
 	DisableGlowMaterial();
 	DisableCustomDepth();
@@ -379,6 +392,57 @@ void AItemBase::OnConstruction(const FTransform& Transform)
 	EnableGlowMaterial();
 }
 
+void AItemBase::ResetPulseTimer()
+{
+	if (ItemState != EItemState::EIS_PickUp)
+		return;
+
+	GetWorldTimerManager().SetTimer(PulseTimer, this, &AItemBase::ResetPulseTimer, PulseCurveTime);
+}
+
+void AItemBase::UpdatePulse()
+{
+	if (!DynamicMaterialInstance)
+		return;
+
+	static const FName GlowParameterName = TEXT("GlowAmount");
+	static const FName FresnelExponentParameterName = TEXT("FresnelExponent");
+	static const FName FresnelReflectFractionParameterName = TEXT("FresnelReflectFraction");
+
+	float ElapsedTime{};
+	FVector CurrentCurveValue{};
+
+	switch (ItemState)
+	{
+	case EItemState::EIS_PickUp:
+	{
+		if (!PulseCurve)
+			return;
+
+		ElapsedTime = GetWorldTimerManager().GetTimerElapsed(PulseTimer);
+		CurrentCurveValue = PulseCurve->GetVectorValue(ElapsedTime);
+
+		break;
+	}
+	case EItemState::EIS_EquipInterping:
+	{
+		if (!PulseInterpCurve)
+			return;
+
+		ElapsedTime = GetWorldTimerManager().GetTimerElapsed(ItemInterpTimer);
+		CurrentCurveValue = PulseInterpCurve->GetVectorValue(ElapsedTime);
+
+		break;
+	}
+	default:
+		break;
+	}
+
+	DynamicMaterialInstance->SetScalarParameterValue(GlowParameterName, CurrentCurveValue.X * GlowAmount);
+	DynamicMaterialInstance->SetScalarParameterValue(FresnelExponentParameterName, CurrentCurveValue.Y * FresnelExponent);
+	DynamicMaterialInstance->SetScalarParameterValue(FresnelReflectFractionParameterName, CurrentCurveValue.Z * FresnelReflectFraction);
+}
+
 void AItemBase::EnableGlowMaterial()
 {
 	if (!DynamicMaterialInstance)
@@ -401,11 +465,17 @@ void AItemBase::DisableGlowMaterial()
 
 void AItemBase::EnableCustomDepth()
 {
+	if (!bIsCanChangeCustomDepth)
+		return;
+
 	ItemMesh->SetRenderCustomDepth(true);
 }
 
 void AItemBase::DisableCustomDepth()
 {
+	if (!bIsCanChangeCustomDepth)
+		return;
+
 	ItemMesh->SetRenderCustomDepth(false);
 }
 
@@ -421,6 +491,9 @@ void AItemBase::Tick(float DeltaTime)
 
 	//Handle item interping when in the EquipInterping state
 	ItemInterp(DeltaTime);
+
+	//Get curve values from PulseCurve and set dynamic material parameters
+	UpdatePulse();
 }
 
 void AItemBase::UpdateItemProperties()
@@ -441,6 +514,7 @@ void AItemBase::StartItemFlying(AParagonCharacter* Character)
 	bIsInterping = true;
 	SetItemState(EItemState::EIS_EquipInterping);
 
+	GetWorldTimerManager().ClearTimer(PulseTimer);
 	GetWorldTimerManager().SetTimer(ItemInterpTimer, this, &AItemBase::FinishFlying, InterpTimerDuration);
 
 	//Get initial Yaw of the Camera
@@ -453,5 +527,7 @@ void AItemBase::StartItemFlying(AParagonCharacter* Character)
 	InterpInitalYawOffset = ItemRotationYaw - CameraRotationYaw;
 
 	PlayPickupSound();
+
+	bIsCanChangeCustomDepth = false;
 } 
 
