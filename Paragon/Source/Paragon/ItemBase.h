@@ -247,6 +247,14 @@ private:
 	/// Curve to drive the dynamic material parameters when interpint
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	UCurveVector* PulseInterpCurve;
+
+	/// A background image for the item in the inventory
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
+	UTexture2D* IconBackground;
+
+	/// An icon for the item in the inventory
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
+	UTexture2D* IconItem;
 public:
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupInfoWidget; }
 

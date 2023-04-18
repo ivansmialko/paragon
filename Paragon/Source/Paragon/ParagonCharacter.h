@@ -535,6 +535,13 @@ private:
 	//Class of Impact Point to spawn it in the place of bullet impact
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Environment, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class AImpactPoint> WeaponImpactPointClass;
+
+	/// An array of AItemBase's for inventory
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
+	TArray<AItemBase*> Inventory;
+
+	/// Max items amount in the array
+	const int32 INVENTORY_CAPACITY{ 6 };
 public:
 
 	//Return CameraBoom subobject
@@ -600,4 +607,5 @@ public:
 
 	void StartEquipSoundTimer();
 
+	void AddInventoryItem(AItemBase* ItemToAdd);
 };

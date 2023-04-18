@@ -152,6 +152,7 @@ void AParagonCharacter::BeginPlay()
 
 	//Spawn and equip the default weapon and attach it to the mesh
 	EquipWeapon(SpawnDefaultWeapon());
+	Inventory.Add(EquippedWeapon);
 	EquippedWeapon->DisableCustomDepth();
 	EquippedWeapon->DisableGlowMaterial();
 
@@ -849,6 +850,11 @@ void AParagonCharacter::StartEquipSoundTimer()
 	GetWorldTimerManager().SetTimer(EquipSoundTimer, this, &AParagonCharacter::ResetEquipSoundTimer, EquipSoundResetTime);
 }
 
+void AParagonCharacter::AddInventoryItem(AItemBase* ItemToAdd)
+{
+
+}
+
 // Called every frame
 void AParagonCharacter::Tick(float DeltaTime)
 {
@@ -1109,7 +1115,16 @@ void AParagonCharacter::GetPickupItem(AItemBase* Item)
 	auto Weapon = Cast<AWeapon>(Item);
 	if (Weapon)
 	{
-		SwapWeapon(Weapon);
+		//Inventory is not full
+		if (Inventory.Num() < INVENTORY_CAPACITY)
+		{
+			Inventory.Add(Weapon);
+		}
+		else //Inventory is full, swapping picked up item with equipped weapon
+		{
+			SwapWeapon(Weapon);
+
+		}
 	}
 	auto Ammo = Cast<AAmmo>(Item);
 	if (Ammo)
