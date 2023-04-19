@@ -255,6 +255,14 @@ private:
 	/// An icon for the item in the inventory
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
 	UTexture2D* IconItem;
+
+	/// An ammo icon for the item in the inventory
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
+	UTexture2D* IconAmmo;
+
+	/// Slot in the inventory array
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
+	int32 SlotIndex;
 public:
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupInfoWidget; }
 
@@ -264,6 +272,7 @@ public:
 
 	FORCEINLINE EItemState GetItemState() const { return ItemState; }
 
+	/// Don't forget to call UpdateItemProperties() to update properties corresponding to the state!
 	FORCEINLINE void SetItemState(EItemState State) { ItemState = State; }
 
 	void UpdateItemProperties();
@@ -288,4 +297,8 @@ public:
 	void EnableGlowMaterial();
 
 	void DisableGlowMaterial();
+
+	int32 GetSlotIndex() const { return SlotIndex; }
+
+	void SetSlotIndex(int32 Index) { SlotIndex = Index; }
 };

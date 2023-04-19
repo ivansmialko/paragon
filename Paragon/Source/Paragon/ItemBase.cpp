@@ -33,7 +33,8 @@ AItemBase::AItemBase() :
 	GlowAmount(50.f),
 	FresnelExponent(3.f),
 	FresnelReflectFraction(4.f),
-	PulseCurveTime(4.f)
+	PulseCurveTime(4.f),
+	SlotIndex(0)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -205,7 +206,26 @@ void AItemBase::SetItemProperties(EItemState State)
 		break;
 	}
 	case EItemState::EIS_PickedUp:
+	{
+		//Set mesh properties
+		ItemMesh->SetSimulatePhysics(false);
+		ItemMesh->SetVisibility(false);
+		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		//Set area sphere properties
+		AreaSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		//Set collision box properties
+		CollisionBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		//Hide weapon widget
+		PickupInfoWidget->SetVisibility(false);
+
 		break;
+	}
 	case EItemState::EIS_Equipped:
 	{
 		//Set mesh properties
@@ -260,7 +280,7 @@ void AItemBase::FinishFlying()
 
 	PlayerCharacter->GetPickupItem(this);
 	bIsInterping = false;
-	SetItemState(EItemState::EIS_PickedUp);
+	UpdateItemProperties();
 
 	//Set scale back to normal
 	SetActorScale3D(FVector(1.f));
