@@ -153,6 +153,7 @@ void AParagonCharacter::BeginPlay()
 	//Spawn and equip the default weapon and attach it to the mesh
 	EquipWeapon(SpawnDefaultWeapon());
 	Inventory.Add(EquippedWeapon);
+	EquippedWeapon->SetSlotIndex(0);
 	EquippedWeapon->DisableCustomDepth();
 	EquippedWeapon->DisableGlowMaterial();
 
@@ -1117,7 +1118,10 @@ void AParagonCharacter::GetPickupItem(AItemBase* Item)
 		//Inventory is not full
 		if (Inventory.Num() < INVENTORY_CAPACITY)
 		{
+			Weapon->SetSlotIndex(Inventory.Num());
 			Inventory.Add(Weapon);
+			Weapon->SetItemState(EItemState::EIS_PickedUp);
+			Weapon->UpdateItemProperties();
 		}
 		else //Inventory is full, swapping picked up item with equipped weapon
 		{
