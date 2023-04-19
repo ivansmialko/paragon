@@ -1111,7 +1111,6 @@ FVector AParagonCharacter::GetCameraInterpLocation()
 
 void AParagonCharacter::GetPickupItem(AItemBase* Item)
 {
-
 	auto Weapon = Cast<AWeapon>(Item);
 	if (Weapon)
 	{
@@ -1123,9 +1122,9 @@ void AParagonCharacter::GetPickupItem(AItemBase* Item)
 		else //Inventory is full, swapping picked up item with equipped weapon
 		{
 			SwapWeapon(Weapon);
-
 		}
 	}
+
 	auto Ammo = Cast<AAmmo>(Item);
 	if (Ammo)
 	{
