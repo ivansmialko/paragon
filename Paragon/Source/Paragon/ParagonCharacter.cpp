@@ -538,6 +538,16 @@ void AParagonCharacter::EquipWeapon(class AWeapon* WeaponToEquip)
 	//Attach the weapon to the hand socket
 	HandSocket->AttachActor(WeaponToEquip, GetMesh());
 
+	if (!EquippedWeapon)
+	{
+		//-1 = no equipped weapon yet. No need to reverse the icon animation
+		EquipItemDelegate.Broadcast(-1, WeaponToEquip->GetSlotIndex());
+	}
+	else
+	{
+		EquipItemDelegate.Broadcast(EquippedWeapon->GetSlotIndex(), WeaponToEquip->GetSlotIndex());
+	}
+
 	EquippedWeapon = WeaponToEquip;
 	EquippedWeapon->SetItemState(EItemState::EIS_Equipped);
 	EquippedWeapon->UpdateItemProperties();
