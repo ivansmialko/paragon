@@ -280,7 +280,6 @@ void AItemBase::FinishFlying()
 
 	PlayerCharacter->GetPickupItem(this);
 	bIsInterping = false;
-	SetItemState(EItemState::EIS_PickedUp);
 	UpdateItemProperties();
 
 	//Set scale back to normal

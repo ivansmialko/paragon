@@ -227,6 +227,20 @@ protected:
 
 	void ResetEquipSoundTimer();
 
+	void FKeyPressed();
+
+	void Key1Pressed();
+
+	void Key2Pressed();
+
+	void Key3Pressed();
+
+	void Key4Pressed();
+
+	void Key5Pressed();
+
+	void ExchangeInventoryItems(int32 CurrentItemIndex, int32 NewItemIndex);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

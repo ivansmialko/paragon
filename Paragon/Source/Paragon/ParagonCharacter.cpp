@@ -492,6 +492,11 @@ void AParagonCharacter::TraceForItems()
 	if (TraceUnderCrosshairs(ItemTraceResult, HitLocation))
 	{
 		TraceHitItem = Cast<AItemBase>(ItemTraceResult.Actor);
+		if (TraceHitItem && TraceHitItem->GetItemState() == EItemState::EIS_EquipInterping)
+		{
+			TraceHitItem = nullptr;
+		}
+
 		if (TraceHitItem && TraceHitItem->GetPickupWidget())
 		{
 			//Shot Item's pick up widget
@@ -577,6 +582,7 @@ void AParagonCharacter::SelectButtonPressed()
 		return;
 
 	TraceHitItem->StartItemFlying(this);
+	TraceHitItem = nullptr;
 }
 
 void AParagonCharacter::SelectButtonReleased()
@@ -586,6 +592,12 @@ void AParagonCharacter::SelectButtonReleased()
 
 void AParagonCharacter::SwapWeapon(AWeapon* WeaponToSwap)
 {
+	if (Inventory.Num() - 1 >= EquippedWeapon->GetSlotIndex())
+	{
+		Inventory[EquippedWeapon->GetSlotIndex()] = WeaponToSwap;
+		WeaponToSwap->SetSlotIndex(EquippedWeapon->GetSlotIndex());
+	}
+
 	DropWeapon();
 	EquipWeapon(WeaponToSwap);
 	TraceHitItem = nullptr;
@@ -910,6 +922,13 @@ void AParagonCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("ReloadButton", IE_Pressed, this, &AParagonCharacter::ReloadButtonPressed);
 
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AParagonCharacter::CrouchButtonPressed);
+
+	PlayerInputComponent->BindAction("FKey", IE_Pressed, this, &AParagonCharacter::FKeyPressed);
+	PlayerInputComponent->BindAction("1Key", IE_Pressed, this, &AParagonCharacter::Key1Pressed);
+	PlayerInputComponent->BindAction("2Key", IE_Pressed, this, &AParagonCharacter::Key2Pressed);
+	PlayerInputComponent->BindAction("3Key", IE_Pressed, this, &AParagonCharacter::Key3Pressed);
+	PlayerInputComponent->BindAction("4Key", IE_Pressed, this, &AParagonCharacter::Key4Pressed);
+	PlayerInputComponent->BindAction("5Key", IE_Pressed, this, &AParagonCharacter::Key5Pressed);
 }
 
 void AParagonCharacter::GrabClip()
@@ -1052,6 +1071,93 @@ void AParagonCharacter::ResetPickUpSoundTimer()
 void AParagonCharacter::ResetEquipSoundTimer()
 {
 	bIsShouldPlayEquipSound = true;
+}
+
+void AParagonCharacter::FKeyPressed()
+{
+	if (!EquippedWeapon)
+		return;
+
+	if (EquippedWeapon->GetSlotIndex() == 0)
+		return;
+
+	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 0);
+}
+
+void AParagonCharacter::Key1Pressed()
+{
+	if (!EquippedWeapon)
+		return;
+
+	if (EquippedWeapon->GetSlotIndex() == 1)
+		return;
+
+	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 1);
+}
+
+void AParagonCharacter::Key2Pressed()
+{
+	if (!EquippedWeapon)
+		return;
+
+	if (EquippedWeapon->GetSlotIndex() == 2)
+		return;
+
+	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 2);
+}
+
+void AParagonCharacter::Key3Pressed()
+{
+	if (!EquippedWeapon)
+		return;
+
+	if (EquippedWeapon->GetSlotIndex() == 3)
+		return;
+
+	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 3);
+}
+
+void AParagonCharacter::Key4Pressed()
+{
+	if (!EquippedWeapon)
+		return;
+
+	if (EquippedWeapon->GetSlotIndex() == 4)
+		return;
+
+	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 4);
+}
+
+void AParagonCharacter::Key5Pressed()
+{
+	if (!EquippedWeapon)
+		return;
+
+	if (EquippedWeapon->GetSlotIndex() == 5)
+		return;
+
+	ExchangeInventoryItems(EquippedWeapon->GetSlotIndex(), 5);
+}
+
+void AParagonCharacter::ExchangeInventoryItems(int32 CurrentItemIndex, int32 NewItemIndex)
+{
+	if(CurrentItemIndex == NewItemIndex)
+		return;
+
+	if (NewItemIndex > Inventory.Num() - 1 || CurrentItemIndex > Inventory.Num() - 1)
+		return;
+
+	auto OldEquippedWeapon = EquippedWeapon;
+	auto NewWeaponToEquip = Cast<AWeapon>(Inventory[NewItemIndex]);
+	if (!NewWeaponToEquip)
+		return;
+
+	EquipWeapon(NewWeaponToEquip);
+	OldEquippedWeapon->SetItemState(EItemState::EIS_PickedUp);
+	OldEquippedWeapon->UpdateItemProperties();
+
+	NewWeaponToEquip->SetItemState(EItemState::EIS_Equipped);
+	NewWeaponToEquip->UpdateItemProperties();
 }
 
 void AParagonCharacter::FireBeginEvent()
