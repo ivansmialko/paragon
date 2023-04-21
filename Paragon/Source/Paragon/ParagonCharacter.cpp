@@ -574,6 +574,9 @@ void AParagonCharacter::DropWeapon()
 
 void AParagonCharacter::SelectButtonPressed()
 {
+	if (CurrentCombatState != ECombatState::ECS_Unoccupied)
+		return;
+
 	if (!TraceHitItem)
 		return;
 
@@ -1141,6 +1144,9 @@ void AParagonCharacter::Key5Pressed()
 
 void AParagonCharacter::ExchangeInventoryItems(int32 CurrentItemIndex, int32 NewItemIndex)
 {
+	if (CurrentCombatState != ECombatState::ECS_Unoccupied)
+		return;
+
 	if(CurrentItemIndex == NewItemIndex)
 		return;
 
