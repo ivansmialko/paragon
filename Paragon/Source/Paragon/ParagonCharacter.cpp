@@ -774,6 +774,11 @@ void AParagonCharacter::FinishReloading()
 	}
 }
 
+void AParagonCharacter::FinishEquipping()
+{
+	CurrentCombatState = ECombatState::ECS_Unoccupied;
+}
+
 bool AParagonCharacter::IsHaveAmmo()
 {
 	if (!EquippedWeapon)
@@ -1164,6 +1169,17 @@ void AParagonCharacter::ExchangeInventoryItems(int32 CurrentItemIndex, int32 New
 
 	NewWeaponToEquip->SetItemState(EItemState::EIS_Equipped);
 	NewWeaponToEquip->UpdateItemProperties();
+
+	CurrentCombatState = ECombatState::ECS_Equipping;
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (!AnimInstance)
+		return;
+
+	if (!EquipMontage)
+		return;
+
+	AnimInstance->Montage_Play(EquipMontage, 1.0f);
+	AnimInstance->Montage_JumpToSection(FName("Equip"));
 }
 
 void AParagonCharacter::FireBeginEvent()

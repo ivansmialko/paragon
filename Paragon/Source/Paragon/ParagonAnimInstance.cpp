@@ -97,6 +97,7 @@ void UParagonAnimInstance::TurnInPlace()
 
 	Pitch = ParagonCharacter->GetBaseAimRotation().Pitch;
 	bIsReloading = ParagonCharacter->GetCombatState() == ECombatState::ECS_ReloadingState;
+	bIsEquipping = ParagonCharacter->GetCombatState() == ECombatState::ECS_Equipping;
 
 	if (Speed > 0 || bIsInAir)
 	{
@@ -146,7 +147,7 @@ void UParagonAnimInstance::TurnInPlace()
 	{
 		WeaponRecoilWeight = 0.f;
 
-		if (bIsReloading)
+		if (bIsReloading || bIsEquipping)
 		{
 			WeaponRecoilWeight = 1.f;
 		}
@@ -155,7 +156,7 @@ void UParagonAnimInstance::TurnInPlace()
 	{
 		if (bIsCrouching)
 		{
-			if (bIsReloading)
+			if (bIsReloading || bIsEquipping)
 			{
 				WeaponRecoilWeight = 1.f;
 			}
@@ -166,7 +167,7 @@ void UParagonAnimInstance::TurnInPlace()
 		}
 		else
 		{
-			if (bIsAiming || bIsReloading)
+			if (bIsAiming || bIsReloading || bIsEquipping)
 			{
 				WeaponRecoilWeight = 1.f;
 			}
