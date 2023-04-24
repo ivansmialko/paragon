@@ -34,7 +34,8 @@ AItemBase::AItemBase() :
 	FresnelExponent(3.f),
 	FresnelReflectFraction(4.f),
 	PulseCurveTime(4.f),
-	SlotIndex(0)
+	SlotIndex(0),
+	bIsCharacterInventoryFull(false)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -350,7 +351,7 @@ void AItemBase::ItemInterp(float DeltaTime)
 	SetActorScale3D(FVector(CurrScaleCurveValue, CurrScaleCurveValue, CurrScaleCurveValue));
 }
 
-void AItemBase::PlayPickupSound()
+void AItemBase::PlayPickupSound(bool bForcePlaySound /*= false*/)
 {
 	if (!PlayerCharacter)
 		return;
@@ -358,14 +359,14 @@ void AItemBase::PlayPickupSound()
 	if (!GetPickupSound())
 		return;
 
-	if (!PlayerCharacter->GetIsShouldPlayPickUpSound())
+	if (!PlayerCharacter->GetIsShouldPlayPickUpSound() && !bForcePlaySound)
 		return;
 
 	UGameplayStatics::PlaySound2D(GetWorld(), GetPickupSound());
 	PlayerCharacter->StartPickUpSoundTimer();
 }
 
-void AItemBase::PlayEquipSound()
+void AItemBase::PlayEquipSound(bool bIsForce /*= false*/)
 {
 	if (!PlayerCharacter)
 		return;
@@ -373,7 +374,7 @@ void AItemBase::PlayEquipSound()
 	if (!GetEquipSound())
 		return;
 
-	if (!PlayerCharacter->GetIsShouldPlayEquipSound())
+	if (!PlayerCharacter->GetIsShouldPlayEquipSound() && !bIsForce)
 		return;
 
 	UGameplayStatics::PlaySound2D(GetWorld(), GetEquipSound());
@@ -521,7 +522,7 @@ void AItemBase::UpdateItemProperties()
 	SetItemProperties(ItemState);
 }
 
-void AItemBase::StartItemFlying(AParagonCharacter* Character)
+void AItemBase::StartItemFlying(AParagonCharacter* Character, bool bForcePlaySound /*= false*/)
 {
 	PlayerCharacter = Character;
 
@@ -546,7 +547,7 @@ void AItemBase::StartItemFlying(AParagonCharacter* Character)
 	//Inital Yaw offste between Camera and Item
 	InterpInitalYawOffset = ItemRotationYaw - CameraRotationYaw;
 
-	PlayPickupSound();
+	PlayPickupSound(bForcePlaySound);
 
 	bIsCanChangeCustomDepth = false;
 } 

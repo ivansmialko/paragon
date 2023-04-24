@@ -97,7 +97,7 @@ protected:
 	/**
 	 * Play sound of picking the item
 	 */
-	void PlayPickupSound();
+	void PlayPickupSound(bool bForcePlaySound = false);
 
 	/**
 	 * Get interp location based on the item type
@@ -117,7 +117,7 @@ public:
 	/**
 	* Play sound of equipping the item
 	*/
-	void PlayEquipSound();
+	void PlayEquipSound(bool bIsForce = false);
 private:
 	//Skeletal mesh for the item
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
@@ -263,42 +263,42 @@ private:
 	/// Slot in the inventory array
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
 	int32 SlotIndex;
+
+	/// True when the caracter's inventory is full
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
+	bool bIsCharacterInventoryFull;
 public:
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupInfoWidget; }
-
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
-	
 	FORCEINLINE UBoxComponent* GetCollisionBox() const { return CollisionBox; }
-
 	FORCEINLINE EItemState GetItemState() const { return ItemState; }
-
 	/// Don't forget to call UpdateItemProperties() to update properties corresponding to the state!
 	FORCEINLINE void SetItemState(EItemState State) { ItemState = State; }
 
 	void UpdateItemProperties();
 
 	FORCEINLINE USkeletalMeshComponent* GetItemMesh() { return ItemMesh; }
-
 	//Called from the AParagonCharacter to begin item position interpolating to camera
-	void StartItemFlying(AParagonCharacter* Character);
+	void StartItemFlying(AParagonCharacter* Character, bool bForcePlaySound = false);
 
 	FORCEINLINE USoundCue* GetPickupSound() const { return PickupSound; };
-	
 	FORCEINLINE USoundCue* GetEquipSound() const { return EquipSound; }
 
 	FORCEINLINE int32 GetItemCount() const { return ItemCount; }
 
-	virtual void EnableCustomDepth();
+	FORCEINLINE void SetCharacterRef(AParagonCharacter* RefCharacter) { PlayerCharacter = RefCharacter; }
 
+	virtual void EnableCustomDepth();
 	virtual void DisableCustomDepth();
 
 	virtual void InitializeCustomDepth();
 
 	void EnableGlowMaterial();
-
 	void DisableGlowMaterial();
 
 	int32 GetSlotIndex() const { return SlotIndex; }
-
 	void SetSlotIndex(int32 Index) { SlotIndex = Index; }
+
+	bool GetIsCharacterInventoryFull() const { return bIsCharacterInventoryFull; }
+	void SetIsCharacterInventoryFull(bool val) { bIsCharacterInventoryFull = val; }
 };
