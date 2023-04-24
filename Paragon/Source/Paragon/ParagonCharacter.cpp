@@ -156,6 +156,7 @@ void AParagonCharacter::BeginPlay()
 	EquippedWeapon->SetSlotIndex(0);
 	EquippedWeapon->DisableCustomDepth();
 	EquippedWeapon->DisableGlowMaterial();
+	EquippedWeapon->SetCharacterRef(this);
 
 	InitializeAmmoMap();
 	GetCharacterMovement()->MaxWalkSpeed = BaseMovementSpeed;
@@ -504,6 +505,9 @@ void AParagonCharacter::TraceForItems()
 
 			//Enable border glow for an item
 			TraceHitItem->EnableCustomDepth();
+
+			//Check if inventory is full
+			TraceHitItem->SetIsCharacterInventoryFull(Inventory.Num() >= INVENTORY_CAPACITY);
 		}
 		
 		//We hit an AItemBase last frame
@@ -584,7 +588,7 @@ void AParagonCharacter::SelectButtonPressed()
 	if (!TraceHitItem)
 		return;
 
-	TraceHitItem->StartItemFlying(this);
+	TraceHitItem->StartItemFlying(this, true);
 	TraceHitItem = nullptr;
 }
 
@@ -1169,6 +1173,7 @@ void AParagonCharacter::ExchangeInventoryItems(int32 CurrentItemIndex, int32 New
 
 	NewWeaponToEquip->SetItemState(EItemState::EIS_Equipped);
 	NewWeaponToEquip->UpdateItemProperties();
+	NewWeaponToEquip->PlayEquipSound(true);
 
 	CurrentCombatState = ECombatState::ECS_Equipping;
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
