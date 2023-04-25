@@ -33,6 +33,7 @@ struct FInterpLocation
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FEquipItemDelegate, int32, CurrentSlotIndex, int32, NewSlotIndex);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FHighlightIconDelegate, int32, SlotIndex, bool, bStartAnimation);
 
 UCLASS()
 class PARAGON_API AParagonCharacter : public ACharacter
@@ -163,7 +164,7 @@ protected:
 	 * Takes a weapon and attaches it to the mesh
 	 * @param WeaponToEquip Self explanatory
 	 */
-	void EquipWeapon(AWeapon* WeaponToEquip);
+	void EquipWeapon(AWeapon* WeaponToEquip, bool bIsSwapping = false);
 
 	/**
 	 * Detach weapon and let it fall to the ground
@@ -244,6 +245,8 @@ protected:
 	void Key5Pressed();
 
 	void ExchangeInventoryItems(int32 CurrentItemIndex, int32 NewItemIndex);
+
+	int32 GetEmptyInventorySlotIndex();
 
 public:	
 	// Called every frame
@@ -570,6 +573,14 @@ private:
 	/// Delegate for sending slot information to inventory bar when equipping
 	UPROPERTY(BlueprintAssignable, Category = Delegates, meta = (AllowPrivateAccess = "true"))
 	FEquipItemDelegate EquipItemDelegate;
+
+	/// Delegate for sending slot information to play inventory icon animation
+	UPROPERTY(BlueprintAssignable, Category = Delegates, meta = (AllowPrivateAccess = "true"))
+	FHighlightIconDelegate HighlightIconDelegate;
+
+	/// The index for the currently highlighted slot
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
+	int32 CurrentHighlightedSlot;
 public:
 
 	//Return CameraBoom subobject
@@ -632,8 +643,10 @@ public:
 	FORCEINLINE bool GetIsShouldPlayEquipSound() const { return bIsShouldPlayEquipSound; }
 
 	void StartPickUpSoundTimer();
-
 	void StartEquipSoundTimer();
 
 	void AddInventoryItem(AItemBase* ItemToAdd);
+
+	void HighlightInventorySlot();
+	void UnHighlightInventorySlot();
 };

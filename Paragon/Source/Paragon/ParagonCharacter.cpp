@@ -82,10 +82,13 @@ AParagonCharacter::AParagonCharacter() :
 	BaseGroundFriction(2.0f),
 	CrouchingGroundFriction(100.f),
 	bIsAimingButtonPressed(false),
+	//Pickup sound timer properties
 	bIsShouldPlayEquipSound(true),
 	bIsShouldPlayPickUpSound(true),
 	PickUpSoundResetTime(0.2f),
-	EquipSoundResetTime(0.2f)
+	EquipSoundResetTime(0.2f),
+	//Icon animation property
+	CurrentHighlightedSlot(-1)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -493,6 +496,17 @@ void AParagonCharacter::TraceForItems()
 	if (TraceUnderCrosshairs(ItemTraceResult, HitLocation))
 	{
 		TraceHitItem = Cast<AItemBase>(ItemTraceResult.Actor);
+
+		const auto TraceHitWeapon = Cast<AWeapon>(TraceHitItem);
+		if (TraceHitWeapon)
+		{
+			HighlightInventorySlot();
+		}
+		else
+		{
+			UnHighlightInventorySlot();
+		}
+
 		if (TraceHitItem && TraceHitItem->GetItemState() == EItemState::EIS_EquipInterping)
 		{
 			TraceHitItem = nullptr;
@@ -534,7 +548,7 @@ AWeapon* AParagonCharacter::SpawnDefaultWeapon()
 	return DefaultWeapon;
 }
 
-void AParagonCharacter::EquipWeapon(class AWeapon* WeaponToEquip)
+void AParagonCharacter::EquipWeapon(AWeapon* WeaponToEquip, bool bIsSwapping /*= false*/)
 {
 	if (!WeaponToEquip)
 		return;
@@ -552,7 +566,7 @@ void AParagonCharacter::EquipWeapon(class AWeapon* WeaponToEquip)
 		//-1 = no equipped weapon yet. No need to reverse the icon animation
 		EquipItemDelegate.Broadcast(-1, WeaponToEquip->GetSlotIndex());
 	}
-	else
+	else if(!bIsSwapping)
 	{
 		EquipItemDelegate.Broadcast(EquippedWeapon->GetSlotIndex(), WeaponToEquip->GetSlotIndex());
 	}
@@ -572,8 +586,6 @@ void AParagonCharacter::DropWeapon()
 	EquippedWeapon->SetItemState(EItemState::EIS_Falling);
 	EquippedWeapon->UpdateItemProperties();
 	EquippedWeapon->ThrowWeapon();
-
-	EquippedWeapon = nullptr;
 }
 
 void AParagonCharacter::SelectButtonPressed()
@@ -606,7 +618,7 @@ void AParagonCharacter::SwapWeapon(AWeapon* WeaponToSwap)
 	}
 
 	DropWeapon();
-	EquipWeapon(WeaponToSwap);
+	EquipWeapon(WeaponToSwap, true);
 	TraceHitItem = nullptr;
 	TraceHitLastFrame = nullptr;
 }
@@ -1153,7 +1165,7 @@ void AParagonCharacter::Key5Pressed()
 
 void AParagonCharacter::ExchangeInventoryItems(int32 CurrentItemIndex, int32 NewItemIndex)
 {
-	if (CurrentCombatState != ECombatState::ECS_Unoccupied)
+	if (!(CurrentCombatState == ECombatState::ECS_Unoccupied || CurrentCombatState == ECombatState::ECS_Equipping))
 		return;
 
 	if(CurrentItemIndex == NewItemIndex)
@@ -1185,6 +1197,44 @@ void AParagonCharacter::ExchangeInventoryItems(int32 CurrentItemIndex, int32 New
 
 	AnimInstance->Montage_Play(EquipMontage, 1.0f);
 	AnimInstance->Montage_JumpToSection(FName("Equip"));
+}
+
+int32 AParagonCharacter::GetEmptyInventorySlotIndex()
+{
+	for (int32 i = 0; i < Inventory.Num(); i++)
+	{
+		if (!Inventory[i])
+			return i;
+	}
+
+	if (Inventory.Num() < INVENTORY_CAPACITY)
+	{
+		return Inventory.Num();
+	}
+
+	return -1; //Inventory is full
+}
+
+void AParagonCharacter::HighlightInventorySlot()
+{
+	const int32 EmptySlotIndex = GetEmptyInventorySlotIndex();
+
+	if (EmptySlotIndex < 0 || CurrentHighlightedSlot > 0)
+		return;
+
+	HighlightIconDelegate.Broadcast(EmptySlotIndex, true);
+
+	CurrentHighlightedSlot = EmptySlotIndex;
+}
+
+void AParagonCharacter::UnHighlightInventorySlot()
+{
+	if (CurrentHighlightedSlot < 0)
+		return;
+
+	HighlightIconDelegate.Broadcast(CurrentHighlightedSlot, false);
+
+	CurrentHighlightedSlot = -1;
 }
 
 void AParagonCharacter::FireBeginEvent()

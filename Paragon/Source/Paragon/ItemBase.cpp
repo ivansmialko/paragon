@@ -109,6 +109,7 @@ void AItemBase::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent,
 		return;
 
 	ParagonCharacter->ChangeOverlappedItemCount(-1);
+	ParagonCharacter->UnHighlightInventorySlot();
 }
 
 void AItemBase::UpdateActiveStars()
@@ -278,6 +279,7 @@ void AItemBase::FinishFlying()
 		return;
 
 	PlayerCharacter->IncrementInterpLocationCount(InterpLocationIndex, -1);
+	PlayerCharacter->UnHighlightInventorySlot();
 
 	PlayerCharacter->GetPickupItem(this);
 	bIsInterping = false;
