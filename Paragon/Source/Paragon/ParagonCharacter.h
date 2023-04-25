@@ -163,7 +163,7 @@ protected:
 	 * Takes a weapon and attaches it to the mesh
 	 * @param WeaponToEquip Self explanatory
 	 */
-	void EquipWeapon(AWeapon* WeaponToEquip);
+	void EquipWeapon(AWeapon* WeaponToEquip, bool bIsSwapping = false);
 
 	/**
 	 * Detach weapon and let it fall to the ground

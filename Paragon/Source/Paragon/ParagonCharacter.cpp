@@ -534,7 +534,7 @@ AWeapon* AParagonCharacter::SpawnDefaultWeapon()
 	return DefaultWeapon;
 }
 
-void AParagonCharacter::EquipWeapon(class AWeapon* WeaponToEquip)
+void AParagonCharacter::EquipWeapon(AWeapon* WeaponToEquip, bool bIsSwapping /*= false*/)
 {
 	if (!WeaponToEquip)
 		return;
@@ -552,7 +552,7 @@ void AParagonCharacter::EquipWeapon(class AWeapon* WeaponToEquip)
 		//-1 = no equipped weapon yet. No need to reverse the icon animation
 		EquipItemDelegate.Broadcast(-1, WeaponToEquip->GetSlotIndex());
 	}
-	else
+	else if(!bIsSwapping)
 	{
 		EquipItemDelegate.Broadcast(EquippedWeapon->GetSlotIndex(), WeaponToEquip->GetSlotIndex());
 	}
@@ -572,8 +572,6 @@ void AParagonCharacter::DropWeapon()
 	EquippedWeapon->SetItemState(EItemState::EIS_Falling);
 	EquippedWeapon->UpdateItemProperties();
 	EquippedWeapon->ThrowWeapon();
-
-	EquippedWeapon = nullptr;
 }
 
 void AParagonCharacter::SelectButtonPressed()
@@ -606,7 +604,7 @@ void AParagonCharacter::SwapWeapon(AWeapon* WeaponToSwap)
 	}
 
 	DropWeapon();
-	EquipWeapon(WeaponToSwap);
+	EquipWeapon(WeaponToSwap, true);
 	TraceHitItem = nullptr;
 	TraceHitLastFrame = nullptr;
 }
@@ -1153,7 +1151,7 @@ void AParagonCharacter::Key5Pressed()
 
 void AParagonCharacter::ExchangeInventoryItems(int32 CurrentItemIndex, int32 NewItemIndex)
 {
-	if (CurrentCombatState != ECombatState::ECS_Unoccupied)
+	if (!(CurrentCombatState == ECombatState::ECS_Unoccupied || CurrentCombatState == ECombatState::ECS_Equipping))
 		return;
 
 	if(CurrentItemIndex == NewItemIndex)
