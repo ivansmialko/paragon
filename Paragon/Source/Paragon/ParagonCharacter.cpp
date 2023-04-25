@@ -82,10 +82,13 @@ AParagonCharacter::AParagonCharacter() :
 	BaseGroundFriction(2.0f),
 	CrouchingGroundFriction(100.f),
 	bIsAimingButtonPressed(false),
+	//Pickup sound timer properties
 	bIsShouldPlayEquipSound(true),
 	bIsShouldPlayPickUpSound(true),
 	PickUpSoundResetTime(0.2f),
-	EquipSoundResetTime(0.2f)
+	EquipSoundResetTime(0.2f),
+	//Icon animation property
+	CurrentHighlightedSlot(-1)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -493,6 +496,17 @@ void AParagonCharacter::TraceForItems()
 	if (TraceUnderCrosshairs(ItemTraceResult, HitLocation))
 	{
 		TraceHitItem = Cast<AItemBase>(ItemTraceResult.Actor);
+
+		const auto TraceHitWeapon = Cast<AWeapon>(TraceHitItem);
+		if (TraceHitWeapon)
+		{
+			HighlightInventorySlot();
+		}
+		else
+		{
+			UnHighlightInventorySlot();
+		}
+
 		if (TraceHitItem && TraceHitItem->GetItemState() == EItemState::EIS_EquipInterping)
 		{
 			TraceHitItem = nullptr;
@@ -1183,6 +1197,44 @@ void AParagonCharacter::ExchangeInventoryItems(int32 CurrentItemIndex, int32 New
 
 	AnimInstance->Montage_Play(EquipMontage, 1.0f);
 	AnimInstance->Montage_JumpToSection(FName("Equip"));
+}
+
+int32 AParagonCharacter::GetEmptyInventorySlotIndex()
+{
+	for (int32 i = 0; i < Inventory.Num(); i++)
+	{
+		if (!Inventory[i])
+			return i;
+	}
+
+	if (Inventory.Num() < INVENTORY_CAPACITY)
+	{
+		return Inventory.Num();
+	}
+
+	return -1; //Inventory is full
+}
+
+void AParagonCharacter::HighlightInventorySlot()
+{
+	const int32 EmptySlotIndex = GetEmptyInventorySlotIndex();
+
+	if (EmptySlotIndex < 0 || CurrentHighlightedSlot > 0)
+		return;
+
+	HighlightIconDelegate.Broadcast(EmptySlotIndex, true);
+
+	CurrentHighlightedSlot = EmptySlotIndex;
+}
+
+void AParagonCharacter::UnHighlightInventorySlot()
+{
+	if (CurrentHighlightedSlot < 0)
+		return;
+
+	HighlightIconDelegate.Broadcast(CurrentHighlightedSlot, false);
+
+	CurrentHighlightedSlot = -1;
 }
 
 void AParagonCharacter::FireBeginEvent()
