@@ -407,13 +407,6 @@ FVector AItemBase::GetInterpLocation()
 
 void AItemBase::OnConstruction(const FTransform& Transform)
 {
-	if (!MaterialInstance)
-		return;
-
-	DynamicMaterialInstance = UMaterialInstanceDynamic::Create(MaterialInstance, this);
-	ItemMesh->SetMaterial(MaterialIndex, DynamicMaterialInstance);
-	EnableGlowMaterial();
-
 	//Load the data in the DT_ItemRarity
 	
 	//Path to the ItemRarity data table
@@ -463,6 +456,14 @@ void AItemBase::OnConstruction(const FTransform& Transform)
 	DarkWidgetColor = RarityRow->DarkWidgetColor;
 	NumberOfStars = RarityRow->NumberOfStars;
 	IconBackground = RarityRow->IconBackground;
+
+	if (!MaterialInstance)
+		return;
+
+	DynamicMaterialInstance = UMaterialInstanceDynamic::Create(MaterialInstance, this);
+	DynamicMaterialInstance->SetVectorParameterValue(TEXT("FresnelColor"), GlowColor);
+	ItemMesh->SetMaterial(MaterialIndex, DynamicMaterialInstance);
+	EnableGlowMaterial();
 }
 
 void AItemBase::ResetPulseTimer()
