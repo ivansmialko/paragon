@@ -464,6 +464,11 @@ void AItemBase::OnConstruction(const FTransform& Transform)
 	DynamicMaterialInstance->SetVectorParameterValue(TEXT("FresnelColor"), GlowColor);
 	ItemMesh->SetMaterial(MaterialIndex, DynamicMaterialInstance);
 	EnableGlowMaterial();
+
+	if (!ItemMesh)
+		return;
+
+	ItemMesh->SetCustomDepthStencilValue(RarityRow->CustomDepthStencil);
 }
 
 void AItemBase::ResetPulseTimer()
