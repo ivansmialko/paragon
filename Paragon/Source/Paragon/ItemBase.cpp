@@ -422,6 +422,47 @@ void AItemBase::OnConstruction(const FTransform& Transform)
 	UDataTable* RarityTableObject = Cast<UDataTable>(StaticLoadObject(UDataTable::StaticClass(), nullptr, *RarityTablePath));
 	if (!RarityTableObject)
 		return;
+
+	FItemRarityTable* RarityRow = nullptr;
+	switch (ItemRarity)
+	{
+	case EItemRarity::EIR_Damaged:
+	{
+		RarityRow = RarityTableObject->FindRow<FItemRarityTable>(FName("Damaged"), TEXT(""));
+		break;
+	}
+	case EItemRarity::EIR_Common:
+	{
+		RarityRow = RarityTableObject->FindRow<FItemRarityTable>(FName("Common"), TEXT(""));
+		break;
+	}
+	case EItemRarity::EIR_Uncommon:
+	{
+		RarityRow = RarityTableObject->FindRow<FItemRarityTable>(FName("Uncommon"), TEXT(""));
+		break;
+	}
+	case EItemRarity::EIR_Rare:
+	{
+		RarityRow = RarityTableObject->FindRow<FItemRarityTable>(FName("Rare"), TEXT(""));
+		break;
+	}
+	case EItemRarity::EIR_Legendary:
+	{
+		RarityRow = RarityTableObject->FindRow<FItemRarityTable>(FName("Legendary"), TEXT(""));
+		break;
+	}
+	default:
+		break;
+	}
+
+	if (!RarityRow)
+		return;
+
+	GlowColor = RarityRow->GlowColor;
+	LightWidgetColor = RarityRow->LightWidgetColor;
+	DarkWidgetColor = RarityRow->DarkWidgetColor;
+	NumberOfStars = RarityRow->NumberOfStars;
+	IconBackground = RarityRow->IconBackground;
 }
 
 void AItemBase::ResetPulseTimer()
