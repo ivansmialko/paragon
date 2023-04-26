@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Engine/DataTable.h"
 #include "ItemBase.generated.h"
 
 UENUM(BlueprintType)
@@ -37,6 +38,27 @@ enum class EItemType : uint8
 	EIT_Ammo UMETA(DisplayName = "Ammo"),
 
 	EIT_MAX UMETA(DisplayName = "DefaultMAX")
+};
+
+USTRUCT(BlueprintType)
+struct FItemRarityTable : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FLinearColor GlowColor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FLinearColor LightWidgetColor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FLinearColor DarkWidgetColor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 NumberOfStars;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UTexture2D* IconBackground;
 };
 
 UCLASS()
@@ -267,6 +289,10 @@ private:
 	/// True when the caracter's inventory is full
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
 	bool bIsCharacterInventoryFull;
+
+	/// Item rarity data table
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataTable, meta = (AllowPrivateAccess = "true"))
+	class UDataTable* ItemRarityDataTable;
 public:
 	FORCEINLINE UWidgetComponent* GetPickupWidget() const { return PickupInfoWidget; }
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }

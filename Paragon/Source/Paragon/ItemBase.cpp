@@ -413,6 +413,15 @@ void AItemBase::OnConstruction(const FTransform& Transform)
 	DynamicMaterialInstance = UMaterialInstanceDynamic::Create(MaterialInstance, this);
 	ItemMesh->SetMaterial(MaterialIndex, DynamicMaterialInstance);
 	EnableGlowMaterial();
+
+	//Load the data in the DT_ItemRarity
+	
+	//Path to the ItemRarity data table
+	FString RarityTablePath(TEXT("DataTable'/Game/_Game/DataTables/DT_ItemRarity.DT_ItemRarity'"));
+
+	UDataTable* RarityTableObject = Cast<UDataTable>(StaticLoadObject(UDataTable::StaticClass(), nullptr, *RarityTablePath));
+	if (!RarityTableObject)
+		return;
 }
 
 void AItemBase::ResetPulseTimer()
