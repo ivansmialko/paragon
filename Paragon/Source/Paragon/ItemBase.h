@@ -329,7 +329,10 @@ public:
 	void StartItemFlying(AParagonCharacter* Character, bool bForcePlaySound = false);
 
 	FORCEINLINE USoundCue* GetPickupSound() const { return PickupSound; };
+	void SetPickupSound(class USoundCue* val) { PickupSound = val; }
+
 	FORCEINLINE USoundCue* GetEquipSound() const { return EquipSound; }
+	void SetEquipSound(USoundCue* val) { EquipSound = val; }
 
 	FORCEINLINE int32 GetItemCount() const { return ItemCount; }
 
@@ -348,4 +351,12 @@ public:
 
 	bool GetIsCharacterInventoryFull() const { return bIsCharacterInventoryFull; }
 	void SetIsCharacterInventoryFull(bool val) { bIsCharacterInventoryFull = val; }
+
+	void SetItemName(FString val) { ItemName = val; }
+
+	UTexture2D* GetIconItem() const { return IconItem; }
+	void SetIconItem(UTexture2D* val) { IconItem = val; }
+
+	UTexture2D* GetIconAmmo() const { return IconAmmo; }
+	void SetIconAmmo(UTexture2D* val) { IconAmmo = val; }
 };
