@@ -238,6 +238,8 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	int32 MaterialIndex;
 
+	int32 LastMaterialIndex;
+
 	/// Dynamic instance that we can change at runtime
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	UMaterialInstanceDynamic* DynamicMaterialInstance;
@@ -329,7 +331,10 @@ public:
 	void StartItemFlying(AParagonCharacter* Character, bool bForcePlaySound = false);
 
 	FORCEINLINE USoundCue* GetPickupSound() const { return PickupSound; };
+	void SetPickupSound(class USoundCue* val) { PickupSound = val; }
+
 	FORCEINLINE USoundCue* GetEquipSound() const { return EquipSound; }
+	void SetEquipSound(USoundCue* val) { EquipSound = val; }
 
 	FORCEINLINE int32 GetItemCount() const { return ItemCount; }
 
@@ -346,6 +351,29 @@ public:
 	int32 GetSlotIndex() const { return SlotIndex; }
 	void SetSlotIndex(int32 Index) { SlotIndex = Index; }
 
-	bool GetIsCharacterInventoryFull() const { return bIsCharacterInventoryFull; }
-	void SetIsCharacterInventoryFull(bool val) { bIsCharacterInventoryFull = val; }
+	FORCEINLINE bool GetIsCharacterInventoryFull() const { return bIsCharacterInventoryFull; }
+	FORCEINLINE void SetIsCharacterInventoryFull(bool val) { bIsCharacterInventoryFull = val; }
+
+	FORCEINLINE void SetItemName(FString val) { ItemName = val; }
+
+	FORCEINLINE UTexture2D* GetIconItem() const { return IconItem; }
+	FORCEINLINE void SetIconItem(UTexture2D* val) { IconItem = val; }
+
+	FORCEINLINE UTexture2D* GetIconAmmo() const { return IconAmmo; }
+	FORCEINLINE void SetIconAmmo(UTexture2D* val) { IconAmmo = val; }
+
+	FORCEINLINE UMaterialInstance* GetMaterialInstance() const { return MaterialInstance; }
+	FORCEINLINE void SetMaterialInstance(UMaterialInstance* val) { MaterialInstance = val; }
+
+	FORCEINLINE UMaterialInstanceDynamic* GetDynamicMaterialInstance() const { return DynamicMaterialInstance; }
+	FORCEINLINE void SetDynamicMaterialInstance(UMaterialInstanceDynamic* val) { DynamicMaterialInstance = val; }
+
+	FORCEINLINE FLinearColor GetGlowColor() const { return GlowColor; }
+	FORCEINLINE void SetGlowColor(FLinearColor val) { GlowColor = val; }
+
+	FORCEINLINE int32 GetMaterialIndex() const { return MaterialIndex; }
+	FORCEINLINE void SetMaterialIndex(int32 val) { MaterialIndex = val; }
+
+	FORCEINLINE int32 GetLastMaterialIndex() const { return LastMaterialIndex; }
+	FORCEINLINE void SetLastMaterialIndex(int32 val) { LastMaterialIndex = val; }
 };
