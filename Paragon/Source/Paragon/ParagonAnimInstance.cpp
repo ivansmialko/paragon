@@ -4,6 +4,8 @@
 #include "ParagonAnimInstance.h"
 #include "ParagonCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Weapon.h"
+#include "WeaponType.h"
 #include "Kismet/KismetMathLibrary.h"
 
 UParagonAnimInstance::UParagonAnimInstance() :
@@ -37,7 +39,7 @@ void UParagonAnimInstance::UpdateAnimationProperties(float DeltaTime)
 
 	if (ParagonCharacter == nullptr)
 		return;
-
+	
 	//Get the lateral speed of the character from velocity
 	FVector Velocity{ ParagonCharacter->GetVelocity() };
 	Velocity.Z = 0;
@@ -82,6 +84,11 @@ void UParagonAnimInstance::UpdateAnimationProperties(float DeltaTime)
 
 	TurnInPlace();
 	Lean(DeltaTime);
+
+	if (!ParagonCharacter->GetEquippedWeapon())
+		return;
+
+	EquippedWeaponType = ParagonCharacter->GetEquippedWeapon()->GetWeaponType();
 }
 
 void UParagonAnimInstance::NativeInitializeAnimation()
