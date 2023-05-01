@@ -25,7 +25,9 @@ UParagonAnimInstance::UParagonAnimInstance() :
 	bIsReloading(false),
 	CurrentOffsetState(EOffsetState::EOS_Hip),
 	WeaponRecoilWeight(1.f),
-	bIsTurningInPlace(false)
+	bIsTurningInPlace(false),
+	EquippedWeaponType(EWeaponType::EWT_MAX),
+	bShouldUseFABRIK(false)
 {
 
 }
@@ -50,6 +52,8 @@ void UParagonAnimInstance::UpdateAnimationProperties(float DeltaTime)
 
 	//Is the character is accelerating?
 	bIsAccelerating = (ParagonCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0);
+
+	bShouldUseFABRIK = (ParagonCharacter->GetCombatState() == ECombatState::ECS_Unoccupied || ParagonCharacter->GetCombatState() == ECombatState::ECS_FireTimerInProgress);
 
 	FRotator AimRotation = ParagonCharacter->GetBaseAimRotation();
 	FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(ParagonCharacter->GetVelocity());
