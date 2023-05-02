@@ -630,6 +630,8 @@ public:
 
 	FORCEINLINE bool GetIsCrouching() const { return bIsCrouching; }
 
+	FORCEINLINE AWeapon* GetEquippedWeapon() const { return EquippedWeapon; }
+
 	FInterpLocation GetInterpLocation(int32 Index);
 
 	/// Returns the index in interplocations array with the lowest item count

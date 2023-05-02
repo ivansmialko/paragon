@@ -965,6 +965,9 @@ void AParagonCharacter::GrabClip()
 
 	//Index for the clip bone on the EquippedWeapon
 	int32 ClipBoneIndex{ EquippedWeapon->GetItemMesh()->GetBoneIndex(EquippedWeapon->GetClipBoneName()) };
+
+	if (ClipBoneIndex < 0)
+		return;
 	
 	//Store the transform of the clip
 	ClipTransform = EquippedWeapon->GetItemMesh()->GetBoneTransform(ClipBoneIndex);
@@ -992,6 +995,9 @@ void AParagonCharacter::HideClip()
 	//Index for the clip bone on the EquippedWeapon
 	int32 ClipBoneIndex{ EquippedWeapon->GetItemMesh()->GetBoneIndex(EquippedWeapon->GetClipBoneName()) };
 
+	if (ClipBoneIndex < 0)
+		return;
+
 	//Hide the clip bone to hide used magazine
 	EquippedWeapon->GetItemMesh()->HideBone(ClipBoneIndex, EPhysBodyOp::PBO_None);
 }
@@ -1006,6 +1012,9 @@ void AParagonCharacter::ShowClip()
 
 	//Index for the clip bone on the EquippedWeapon
 	int32 ClipBoneIndex{ EquippedWeapon->GetItemMesh()->GetBoneIndex(EquippedWeapon->GetClipBoneName()) };
+
+	if (ClipBoneIndex < 0)
+		return;
 
 	//Hide the clip bone to show new magazine that have been taken from pocket
 	EquippedWeapon->GetItemMesh()->UnHideBone(ClipBoneIndex);

@@ -4,6 +4,8 @@
 #include "ParagonAnimInstance.h"
 #include "ParagonCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Weapon.h"
+#include "WeaponType.h"
 #include "Kismet/KismetMathLibrary.h"
 
 UParagonAnimInstance::UParagonAnimInstance() :
@@ -23,7 +25,9 @@ UParagonAnimInstance::UParagonAnimInstance() :
 	bIsReloading(false),
 	CurrentOffsetState(EOffsetState::EOS_Hip),
 	WeaponRecoilWeight(1.f),
-	bIsTurningInPlace(false)
+	bIsTurningInPlace(false),
+	EquippedWeaponType(EWeaponType::EWT_MAX),
+	bShouldUseFABRIK(false)
 {
 
 }
@@ -37,7 +41,7 @@ void UParagonAnimInstance::UpdateAnimationProperties(float DeltaTime)
 
 	if (ParagonCharacter == nullptr)
 		return;
-
+	
 	//Get the lateral speed of the character from velocity
 	FVector Velocity{ ParagonCharacter->GetVelocity() };
 	Velocity.Z = 0;
@@ -48,6 +52,8 @@ void UParagonAnimInstance::UpdateAnimationProperties(float DeltaTime)
 
 	//Is the character is accelerating?
 	bIsAccelerating = (ParagonCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0);
+
+	bShouldUseFABRIK = (ParagonCharacter->GetCombatState() == ECombatState::ECS_Unoccupied || ParagonCharacter->GetCombatState() == ECombatState::ECS_FireTimerInProgress);
 
 	FRotator AimRotation = ParagonCharacter->GetBaseAimRotation();
 	FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(ParagonCharacter->GetVelocity());
@@ -82,6 +88,11 @@ void UParagonAnimInstance::UpdateAnimationProperties(float DeltaTime)
 
 	TurnInPlace();
 	Lean(DeltaTime);
+
+	if (!ParagonCharacter->GetEquippedWeapon())
+		return;
+
+	EquippedWeaponType = ParagonCharacter->GetEquippedWeapon()->GetWeaponType();
 }
 
 void UParagonAnimInstance::NativeInitializeAnimation()

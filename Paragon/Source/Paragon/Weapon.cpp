@@ -139,4 +139,8 @@ void AWeapon::OnConstruction(const FTransform& Transform)
 	GetDynamicMaterialInstance()->SetVectorParameterValue(TEXT("FresnelColor"), GetGlowColor());
 	GetItemMesh()->SetMaterial(GetMaterialIndex(), GetDynamicMaterialInstance());
 	EnableGlowMaterial();
+
+	SetClipBoneName(WeaponDataRow->ClipBoneName);
+	SetReloadMontageSection(WeaponDataRow->ReloadMontageSection);
+	GetItemMesh()->SetAnimInstanceClass(WeaponDataRow->AnimBP);
 }
