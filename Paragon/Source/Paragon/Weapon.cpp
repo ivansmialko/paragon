@@ -141,4 +141,5 @@ void AWeapon::OnConstruction(const FTransform& Transform)
 	EnableGlowMaterial();
 
 	SetClipBoneName(WeaponDataRow->ClipBoneName);
+	SetReloadMontageSection(WeaponDataRow->ReloadMontageSection);
 }
