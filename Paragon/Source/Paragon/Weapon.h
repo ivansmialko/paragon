@@ -46,6 +46,9 @@ struct FWeaponDataTableRow : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 MaterialIndex;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName ClipBoneName;
 };
 
 UCLASS()
@@ -128,6 +131,8 @@ public:
 	void ReloadAmmo(int32 Amount);
 
 	FORCEINLINE FName GetClipBoneName() const { return ClipBoneName; }
+
+	FORCEINLINE void SetClipBoneName(FName val) { ClipBoneName = val; }
 
 	FORCEINLINE void SetMovingClip(bool bIsMoving) { bIsClipMoving = bIsMoving; }
 
