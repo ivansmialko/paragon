@@ -70,6 +70,15 @@ struct FWeaponDataTableRow : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UTexture2D* CrosshairsBottom;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float FireRate;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UParticleSystem* MuzzleFlash;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USoundCue* FireSound;
 };
 
 UCLASS()
@@ -143,6 +152,19 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = DataTable, meta = (AllowPrivateAccess = "true"))
 	UTexture2D* CrosshairsBottom;
+
+
+	/// The speed at which automatic fire happens
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = DataTable, meta = (AllowPrivateAccess = "true"))
+	float FireRate;
+
+	/// Particle system spawned at the barrel socket
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = DataTable, meta = (AllowPrivateAccess = "true"))
+	UParticleSystem* MuzzleFlash;
+
+	/// Sound played when the weapon is fired
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = DataTable, meta = (AllowPrivateAccess = "true"))
+	USoundCue* FireSound;
 public:
 
 	/**
