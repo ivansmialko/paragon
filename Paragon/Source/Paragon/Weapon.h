@@ -197,4 +197,8 @@ public:
 	FORCEINLINE void SetMovingClip(bool bIsMoving) { bIsClipMoving = bIsMoving; }
 
 	bool GetIsClipFull();
+		
+	FORCEINLINE float GetFireRate() const { return FireRate; }
+	FORCEINLINE UParticleSystem* GetMuzzleFlash() const { return MuzzleFlash; }
+	FORCEINLINE USoundCue* GetFireSound() const { return FireSound; }
 };

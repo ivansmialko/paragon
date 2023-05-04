@@ -61,7 +61,6 @@ AParagonCharacter::AParagonCharacter() :
 	//Automatic gun fire settings
 	bIsFireButtonPressed(false),
 	bIsShouldFireAtThisFrame(true),
-	AutomaticFireRate(0.1f),
 	//Item trace variables
 	bIsShouldTraceForItems(false),
 	TraceHitLastFrame(nullptr),
@@ -414,10 +413,15 @@ void AParagonCharacter::FireButtonReleased()
 
 void AParagonCharacter::StartFireTimer()
 {
+	if (!EquippedWeapon)
+		return;
+
+
+
 	CurrentCombatState = ECombatState::ECS_FireTimerInProgress;
 
 	//Timer to wait for a new bullet to fire
-	GetWorldTimerManager().SetTimer(AutoFireTimer, this, &AParagonCharacter::FireTimerCallback, AutomaticFireRate);
+	GetWorldTimerManager().SetTimer(AutoFireTimer, this, &AParagonCharacter::FireTimerCallback, EquippedWeapon->GetFireRate());
 }
 
 void AParagonCharacter::FireTimerCallback()
@@ -639,11 +643,11 @@ bool AParagonCharacter::IsWeaponHasAmmo()
 
 void AParagonCharacter::FirePlaySound()
 {
-	if (!FireSound)
+	if (!EquippedWeapon->GetFireSound())
 		return;
 
 	//Play fire sound
-	UGameplayStatics::PlaySound2D(GetWorld(), FireSound);
+	UGameplayStatics::PlaySound2D(GetWorld(), EquippedWeapon->GetFireSound());
 }
 
 void AParagonCharacter::FireSendBullet()
@@ -667,11 +671,11 @@ void AParagonCharacter::FireSendBullet()
 
 	if (bResult)
 	{
-		if (!ImpactParticles)
-			return;
-
-		//Spawn impact particles
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, ImpactPoint);
+		if (EquippedWeapon->GetMuzzleFlash())
+		{
+			//Spawn impact particles
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), EquippedWeapon->GetMuzzleFlash(), ImpactPoint);
+		}
 
 		SpawnImpactPoint(ImpactPoint);
 	}
