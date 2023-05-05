@@ -153,4 +153,6 @@ void AWeapon::OnConstruction(const FTransform& Transform)
 	FireRate = WeaponDataRow->FireRate;
 	MuzzleFlash = WeaponDataRow->MuzzleFlash;
 	FireSound = WeaponDataRow->FireSound;
+
+	BoneToHide = WeaponDataRow->BoneToHide;
 }
