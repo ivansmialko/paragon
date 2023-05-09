@@ -107,6 +107,11 @@ void AWeapon::OnConstruction(const FTransform& Transform)
 	}
 	default:
 		break;
+	case EWeaponType::EWT_PISTOL:
+	{
+		WeaponDataRow = WeaponTableObject->FindRow<FWeaponDataTableRow>(FName("Pistol"), TEXT(""));
+		break;
+	}
 	}
 
 	if (!WeaponDataRow)
@@ -132,13 +137,13 @@ void AWeapon::OnConstruction(const FTransform& Transform)
 	SetMaterialInstance(WeaponDataRow->MaterialInstance);
 	SetMaterialIndex(WeaponDataRow->MaterialIndex);
 
-	if (!GetMaterialInstance())
-		return;
-
-	SetDynamicMaterialInstance(UMaterialInstanceDynamic::Create(GetMaterialInstance(), this));
-	GetDynamicMaterialInstance()->SetVectorParameterValue(TEXT("FresnelColor"), GetGlowColor());
-	GetItemMesh()->SetMaterial(GetMaterialIndex(), GetDynamicMaterialInstance());
-	EnableGlowMaterial();
+	if (GetMaterialInstance())
+	{
+		SetDynamicMaterialInstance(UMaterialInstanceDynamic::Create(GetMaterialInstance(), this));
+		GetDynamicMaterialInstance()->SetVectorParameterValue(TEXT("FresnelColor"), GetGlowColor());
+		GetItemMesh()->SetMaterial(GetMaterialIndex(), GetDynamicMaterialInstance());
+		EnableGlowMaterial();
+	}
 
 	SetClipBoneName(WeaponDataRow->ClipBoneName);
 	SetReloadMontageSection(WeaponDataRow->ReloadMontageSection);
@@ -153,4 +158,14 @@ void AWeapon::OnConstruction(const FTransform& Transform)
 	FireRate = WeaponDataRow->FireRate;
 	MuzzleFlash = WeaponDataRow->MuzzleFlash;
 	FireSound = WeaponDataRow->FireSound;
+	BoneToHide = WeaponDataRow->BoneToHide;
+}
+
+void AWeapon::BeginPlay()
+{
+	Super::BeginPlay();
+	if (BoneToHide == FName())
+		return;
+
+	GetItemMesh()->HideBoneByName(BoneToHide, EPhysBodyOp::PBO_None);
 }

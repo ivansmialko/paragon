@@ -13,15 +13,15 @@ AExplosiveBarrel::AExplosiveBarrel()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Default root"));
-	DefaultSceneRoot->SetupAttachment(RootComponent);
+	DefaultRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Default root"));
+	SetRootComponent(DefaultRoot);
 
 	BarrelMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Barrel static mesh"));
-	BarrelMesh->SetupAttachment(DefaultSceneRoot);
+	BarrelMesh->SetupAttachment(DefaultRoot);
 
 	ImpactCollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Impact collision sphere"));
 	ImpactCollisionSphere->SetSphereRadius(50.f);
-	ImpactCollisionSphere->SetupAttachment(DefaultSceneRoot);
+	ImpactCollisionSphere->SetupAttachment(DefaultRoot);
 }
 
 // Called when the game starts or when spawned

@@ -38,7 +38,7 @@ private:
 	
 	/// Default root for an blueprint
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class USceneComponent* DefaultSceneRoot;
+	class USceneComponent* DefaultRoot;
 
 	/// Static mesh for barrel model
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Barrel properties", meta = (AllowPrivateAccess = "true"))
