@@ -269,6 +269,12 @@ void AParagonCharacter::FireWeapon()
 
 	//Start timer to control fire rate
 	StartFireTimer();
+
+	if (EquippedWeapon->GetWeaponType() == EWeaponType::EWT_PISTOL)
+	{
+		// Start moving slide timer
+		EquippedWeapon->StartSlideTiemr();
+	}
 }
 
 bool AParagonCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FVector& OutBeamLocation)
@@ -415,8 +421,6 @@ void AParagonCharacter::StartFireTimer()
 {
 	if (!EquippedWeapon)
 		return;
-
-
 
 	CurrentCombatState = ECombatState::ECS_FireTimerInProgress;
 

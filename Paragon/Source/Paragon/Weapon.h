@@ -104,6 +104,8 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	void FinishMovingSlide();
+
 private:
 
 	FTimerHandle ThrowWeaponTimer;
@@ -174,6 +176,28 @@ private:
 	/// Bone to hide on the weapon mesh
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = DataTable, meta = (AllowPrivateAccess = "true"))
 	FName BoneToHide;
+
+	/// Amount that the slide is pushed back during pistol fire
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Pistol, meta = (AllowPrivateAccess = "true"))
+	float SlideDisplacement;
+
+	/// Curve for the slide displacement
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pistol, meta = (AllowPrivateAccess = "true"))
+	UCurveFloat* SlideDisplacementCurve;
+
+	/// Timer handle for updating "float SlideDisplacement"
+	FTimerHandle SlideDisplacementTimer;
+
+	/// Time for displacing the slide during the pistol fire
+	float SlideDisplacementTime;
+
+	/// True when moving the pistol slide
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Pistol, meta = (AllowPrivateAccess = "true"))
+	bool bMovingSlide;
+
+	/// Maximum distance to displace the pistol slide
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pistol, meta = (AllowPrivateAccess = "true"))
+	float MaxSlideDisplacement;
 public:
 
 	/**
@@ -210,4 +234,7 @@ public:
 	FORCEINLINE float GetFireRate() const { return FireRate; }
 	FORCEINLINE UParticleSystem* GetMuzzleFlash() const { return MuzzleFlash; }
 	FORCEINLINE USoundCue* GetFireSound() const { return FireSound; }
+
+	void StartSlideTimer();
+
 };
