@@ -273,7 +273,7 @@ void AParagonCharacter::FireWeapon()
 	if (EquippedWeapon->GetWeaponType() == EWeaponType::EWT_PISTOL)
 	{
 		// Start moving slide timer
-		EquippedWeapon->StartSlideTiemr();
+		EquippedWeapon->StartSlideTimer();
 	}
 }
 
