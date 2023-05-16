@@ -11,7 +11,12 @@ AWeapon::AWeapon():
 	AmmoType(EAmmoType::EAT_9mm),
 	ReloadMontageSection(FName(TEXT("Reload SMG"))),
 	MagazineCapacity(35),
-	ClipBoneName(TEXT("smg_clip"))
+	ClipBoneName(TEXT("smg_clip")),
+	SlideDisplacement(0.f),
+	SlideDisplacementTime(0.2f),
+	bMovingSlide(false),
+	MaxSlideDisplacement(4.f),
+	MaxRecoilRotation(20.f)
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
@@ -26,6 +31,9 @@ void AWeapon::Tick(float DeltaTime)
 		const FRotator MeshRotation{ 0.f, GetItemMesh()->GetComponentRotation().Yaw, 0.f };
 		GetItemMesh()->SetWorldRotation(MeshRotation, false, nullptr, ETeleportType::TeleportPhysics);
 	}
+
+	// Update slide on the pistol
+	UpdateSlideDisplacement();
 }
 
 void AWeapon::ThrowWeapon()
@@ -72,6 +80,12 @@ void AWeapon::ReloadAmmo(int32 Amount)
 bool AWeapon::GetIsClipFull()
 {
 	return (AmmoAmount == MagazineCapacity);
+}
+
+void AWeapon::StartSlideTimer()
+{
+	bMovingSlide = true;
+	GetWorldTimerManager().SetTimer(SlideDisplacementTimer, this, &AWeapon::FinishMovingSlide, SlideDisplacementTime);
 }
 
 void AWeapon::StopFalling()
@@ -168,4 +182,23 @@ void AWeapon::BeginPlay()
 		return;
 
 	GetItemMesh()->HideBoneByName(BoneToHide, EPhysBodyOp::PBO_None);
+}
+
+void AWeapon::FinishMovingSlide()
+{
+	bMovingSlide = false;
+}
+
+void AWeapon::UpdateSlideDisplacement()
+{
+	if (!bMovingSlide)
+		return;
+
+	if (!SlideDisplacementCurve)
+		return;
+
+	const float ElapsedTime{ GetWorldTimerManager().GetTimerElapsed(SlideDisplacementTimer) };
+	const float CurveValue{ SlideDisplacementCurve->GetFloatValue(ElapsedTime) };
+	SlideDisplacement = CurveValue * MaxSlideDisplacement;
+	RecoilRotation = CurveValue * MaxRecoilRotation;
 }
