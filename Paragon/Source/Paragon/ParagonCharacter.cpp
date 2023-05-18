@@ -430,6 +430,9 @@ void AParagonCharacter::StartFireTimer()
 
 void AParagonCharacter::FireTimerCallback()
 {
+	if (!EquippedWeapon)
+		return;
+
 	CurrentCombatState = ECombatState::ECS_Unoccupied;
 
 	if (!IsWeaponHasAmmo())
@@ -440,6 +443,9 @@ void AParagonCharacter::FireTimerCallback()
 	}
 
 	if (!bIsFireButtonPressed)
+		return;
+
+	if (!EquippedWeapon->GetIsAutomatic())
 		return;
 
 	//If fire button still pressed - fire another bullet
