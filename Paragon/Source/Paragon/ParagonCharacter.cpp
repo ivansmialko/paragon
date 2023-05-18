@@ -313,7 +313,8 @@ void AParagonCharacter::SetAimingButtonPressed()
 {
 	bIsAimingButtonPressed = true;
 
-	if (CurrentCombatState != ECombatState::ECS_ReloadingState)
+	if (CurrentCombatState != ECombatState::ECS_ReloadingState
+		&& CurrentCombatState != ECombatState::ECS_Equipping)
 	{
 		StartAiming();
 	}
@@ -807,6 +808,10 @@ void AParagonCharacter::FinishReloading()
 void AParagonCharacter::FinishEquipping()
 {
 	CurrentCombatState = ECombatState::ECS_Unoccupied;
+	if (bIsAimingButtonPressed)
+	{
+		StartAiming();
+	}
 }
 
 bool AParagonCharacter::IsHaveAmmo()
@@ -1191,11 +1196,16 @@ void AParagonCharacter::ExchangeInventoryItems(int32 CurrentItemIndex, int32 New
 	if (!(CurrentCombatState == ECombatState::ECS_Unoccupied || CurrentCombatState == ECombatState::ECS_Equipping))
 		return;
 
-	if(CurrentItemIndex == NewItemIndex)
+	if (CurrentItemIndex == NewItemIndex)
 		return;
 
 	if (NewItemIndex > Inventory.Num() - 1 || CurrentItemIndex > Inventory.Num() - 1)
 		return;
+
+	if (bIsAiming)
+	{
+		StopAiming();
+	}
 
 	auto OldEquippedWeapon = EquippedWeapon;
 	auto NewWeaponToEquip = Cast<AWeapon>(Inventory[NewItemIndex]);
