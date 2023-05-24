@@ -2,6 +2,7 @@
 
 
 #include "ParagonCharacter.h"
+#include "Paragon.h"
 
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -19,6 +20,8 @@
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SceneComponent.h"
+
+#include "PhysicalMaterials/PhysicalMaterial.h"
 
 #include "DrawDebugHelpers.h"
 #include "ItemBase.h"
@@ -1263,7 +1266,13 @@ void AParagonCharacter::OnFootstep()
 	if (!HitResult.GetActor())
 		return;
 
-	UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *HitResult.GetActor()->GetName());
+	auto HitSurfaceType = HitResult.PhysMaterial->SurfaceType;
+
+	if (HitSurfaceType == EPS_Grass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Hit grass surface type"));
+	}
+
 }
 
 void AParagonCharacter::HighlightInventorySlot()
