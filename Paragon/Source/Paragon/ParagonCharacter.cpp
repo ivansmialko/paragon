@@ -1248,6 +1248,24 @@ int32 AParagonCharacter::GetEmptyInventorySlotIndex()
 	return -1; //Inventory is full
 }
 
+void AParagonCharacter::OnFootstep()
+{
+	FHitResult HitResult;
+
+	const FVector StartLocation = GetActorLocation();
+	const FVector EndLocation = StartLocation + FVector(0.0f, 0.f, -400.f);
+	FCollisionQueryParams QueryParams;
+	QueryParams.bReturnPhysicalMaterial = true;
+
+	GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECollisionChannel::ECC_Visibility, QueryParams);
+
+
+	if (!HitResult.GetActor())
+		return;
+
+	UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *HitResult.GetActor()->GetName());
+}
+
 void AParagonCharacter::HighlightInventorySlot()
 {
 	const int32 EmptySlotIndex = GetEmptyInventorySlotIndex();
