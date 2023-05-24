@@ -2,6 +2,7 @@
 
 
 #include "ParagonCharacter.h"
+#include "Paragon.h"
 
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -19,6 +20,8 @@
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SceneComponent.h"
+
+#include "PhysicalMaterials/PhysicalMaterial.h"
 
 #include "DrawDebugHelpers.h"
 #include "ItemBase.h"
@@ -1246,6 +1249,20 @@ int32 AParagonCharacter::GetEmptyInventorySlotIndex()
 	}
 
 	return -1; //Inventory is full
+}
+
+EPhysicalSurface AParagonCharacter::GetSurfaceType()
+{
+	FHitResult HitResult;
+
+	const FVector StartLocation = GetActorLocation();
+	const FVector EndLocation = StartLocation + FVector(0.0f, 0.f, -400.f);
+	FCollisionQueryParams QueryParams;
+	QueryParams.bReturnPhysicalMaterial = true;
+
+	GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECollisionChannel::ECC_Visibility, QueryParams);
+
+	return UPhysicalMaterial::DetermineSurfaceType(HitResult.PhysMaterial.Get());
 }
 
 void AParagonCharacter::HighlightInventorySlot()

@@ -248,6 +248,10 @@ protected:
 
 	int32 GetEmptyInventorySlotIndex();
 
+	/// Called when player makes an footstep
+	UFUNCTION(BlueprintCallable)
+	EPhysicalSurface GetSurfaceType();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
