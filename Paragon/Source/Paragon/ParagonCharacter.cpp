@@ -1251,7 +1251,7 @@ int32 AParagonCharacter::GetEmptyInventorySlotIndex()
 	return -1; //Inventory is full
 }
 
-void AParagonCharacter::OnFootstep()
+EPhysicalSurface AParagonCharacter::GetSurfaceType()
 {
 	FHitResult HitResult;
 
@@ -1262,17 +1262,7 @@ void AParagonCharacter::OnFootstep()
 
 	GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECollisionChannel::ECC_Visibility, QueryParams);
 
-
-	if (!HitResult.GetActor())
-		return;
-
-	auto HitSurfaceType = HitResult.PhysMaterial->SurfaceType;
-
-	if (HitSurfaceType == EPS_Grass)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Hit grass surface type"));
-	}
-
+	return UPhysicalMaterial::DetermineSurfaceType(HitResult.PhysMaterial.Get());
 }
 
 void AParagonCharacter::HighlightInventorySlot()

@@ -250,7 +250,7 @@ protected:
 
 	/// Called when player makes an footstep
 	UFUNCTION(BlueprintCallable)
-	void OnFootstep();
+	EPhysicalSurface GetSurfaceType();
 
 public:	
 	// Called every frame
