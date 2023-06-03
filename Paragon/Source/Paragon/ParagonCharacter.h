@@ -89,7 +89,7 @@ protected:
 	 * @param MuzzleSocketLocation Location of gun's muzzle
 	 * @param OutBeamLocation Reference to a variable, used as output
 	 */
-	bool GetBeamEndLocation(const FVector& MuzzleSocketLocation, FVector& OutBeamLocation);
+	bool GetBeamEndLocation(const FVector& MuzzleSocketLocation, FHitResult& OutHitResult);
 
 	/**
 	 * Set bIsAminig to true with button pressed

@@ -28,6 +28,7 @@
 #include "Weapon.h"
 #include "Ammo.h"
 #include "ImpactPoint.h"
+#include "BulletHitInterface.h"
 
 
 
@@ -280,8 +281,10 @@ void AParagonCharacter::FireWeapon()
 	}
 }
 
-bool AParagonCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FVector& OutBeamLocation)
+bool AParagonCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, FHitResult& OutHitResult)
 {
+	FVector OutBeamLocation;
+
 	//Check for crosshair trace hit
 	FHitResult CrosshairHitResult;
 	bool bCrosshairHit = TraceUnderCrosshairs(CrosshairHitResult, OutBeamLocation);
@@ -296,20 +299,19 @@ bool AParagonCharacter::GetBeamEndLocation(const FVector& MuzzleSocketLocation, 
 	}
 
 	//Perform a second trace, this time from the gun barrel
-	FHitResult WeaponTraceHit;
 	const FVector WeaponTraceStart{ MuzzleSocketLocation };
 	const FVector StartToEnd{ OutBeamLocation - MuzzleSocketLocation };
 	const FVector WeaponTraceEnd{ MuzzleSocketLocation + StartToEnd * 1.25f };
 
 	//Object between barrel and beam endpoint
-	GetWorld()->LineTraceSingleByChannel(WeaponTraceHit, WeaponTraceStart, WeaponTraceEnd, ECollisionChannel::ECC_Visibility);
-	if (WeaponTraceHit.bBlockingHit)
+	GetWorld()->LineTraceSingleByChannel(OutHitResult, WeaponTraceStart, WeaponTraceEnd, ECollisionChannel::ECC_Visibility);
+	if (!OutHitResult.bBlockingHit)
 	{
-		OutBeamLocation = WeaponTraceHit.Location;
-		return true;
+		OutHitResult.Location = OutBeamLocation;
+		return false;
 	}
 
-	return false;
+	return true;
 }
 
 void AParagonCharacter::SetAimingButtonPressed()
@@ -673,26 +675,26 @@ void AParagonCharacter::FireSendBullet()
 	//Get location of barrel, where the bullet is flying out
 	const FTransform SocketTransform = BarrelSocket->GetSocketTransform(EquippedWeapon->GetItemMesh());
 
-	if (!MuzzleFlash)
+	if (!EquippedWeapon->GetMuzzleFlash())
 		return;
 
 	//Spawn muzzle flash particles
-	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), EquippedWeapon->GetMuzzleFlash(), SocketTransform);
 
 	//Calculate point of impact of the bullet
-	FVector ImpactPoint;
+	FHitResult ImpactPoint;
 	bool bResult = GetBeamEndLocation(SocketTransform.GetLocation(), ImpactPoint);
 
-	if (bResult)
+	//If bullet hits something that implements the IBulletHitInterface - do it's inner logic
+	if (bResult && ImpactPoint.Actor.IsValid())
 	{
-		if (EquippedWeapon->GetMuzzleFlash())
+		if (auto BulletHitInterfaceActor = Cast<IBulletHitInterface>(ImpactPoint.Actor.Get()))
 		{
-			//Spawn impact particles
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), EquippedWeapon->GetMuzzleFlash(), ImpactPoint);
+			BulletHitInterfaceActor->BulletHit_Implementation(ImpactPoint);
 		}
-
-		SpawnImpactPoint(ImpactPoint);
 	}
+
+	//SpawnImpactPoint(ImpactPoint);
 
 	if (!BeamParticles)
 		return;
@@ -702,7 +704,7 @@ void AParagonCharacter::FireSendBullet()
 	if (!BulletBeamParticles)
 		return;
 
-	BulletBeamParticles->SetVectorParameter(FName("Target"), ImpactPoint);
+	BulletBeamParticles->SetVectorParameter(FName("Target"), ImpactPoint.Location);
 }
 
 void AParagonCharacter::FirePlayAnim()
