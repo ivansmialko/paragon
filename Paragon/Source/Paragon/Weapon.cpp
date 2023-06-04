@@ -178,6 +178,9 @@ void AWeapon::OnConstruction(const FTransform& Transform)
 	BoneToHide = WeaponDataRow->BoneToHide;
 
 	bAutomatic = WeaponDataRow->bIsAutomatic;
+
+	MainDamage = WeaponDataRow->MainDamage;
+	HeadShotDamage = WeaponDataRow->HeadShotDamage;
 }
 
 void AWeapon::BeginPlay()
