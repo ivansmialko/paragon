@@ -698,7 +698,14 @@ void AParagonCharacter::FireSendBullet()
 		{
 			if (EquippedWeapon)
 			{
-				UGameplayStatics::ApplyDamage(EnemyActor, EquippedWeapon->GetMainDamage(), GetController(), this, UDamageType::StaticClass());
+				float CurrentDamage = EquippedWeapon->GetMainDamage();
+
+				if (ImpactPoint.BoneName.ToString() == EnemyActor->GetHeadBoneName())
+				{
+					CurrentDamage = EquippedWeapon->GetHeadShotDamage();
+				}
+
+				UGameplayStatics::ApplyDamage(EnemyActor, CurrentDamage, GetController(), this, UDamageType::StaticClass());
 			}
 		}
 	}
