@@ -106,5 +106,5 @@ public:
 	FORCEINLINE FString GetHeadBoneName() { return HeadBoneName; }
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void ShowHitNumber(int Damage, FVector HitLocation);
+	void ShowHitNumber(int Damage, FVector HitLocation, bool bIsHeadShot);
 };
