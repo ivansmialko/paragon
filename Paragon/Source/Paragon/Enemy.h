@@ -39,6 +39,8 @@ protected:
 	UFUNCTION()
 	void DestroyHitNumber(UUserWidget* HitNumber);
 
+	void UpdateHitNumbers();
+
 private:
 	/// Particles to spawn when hit by bullets
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
@@ -79,6 +81,7 @@ private:
 	/// Min and max values to delay before enemy can play hit animation
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
 	float HitReactDelayMin;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
 	float HitReactDelayMax;
 
