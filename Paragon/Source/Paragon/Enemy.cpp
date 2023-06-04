@@ -36,6 +36,16 @@ void AEnemy::Die()
 	HideHealthBar();
 }
 
+void AEnemy::PlayHitMontage(FName Section, float PlayRate /*= 1.0f*/)
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (!AnimInstance)
+		return;
+
+	AnimInstance->Montage_Play(HitMontage, PlayRate);
+	AnimInstance->Montage_JumpToSection(Section, HitMontage);
+}
+
 // Called every frame
 void AEnemy::Tick(float DeltaTime)
 {
@@ -78,5 +88,6 @@ void AEnemy::BulletHit_Implementation(FHitResult HitResult)
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, HitResult.Location, FRotator(0.f), true);
 
 	ShowHealthBar();
+	PlayHitMontage(FName("HitReactFront"));
 }
 

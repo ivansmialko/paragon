@@ -29,6 +29,8 @@ protected:
 
 	void Die();
 
+	void PlayHitMontage(FName Section, float PlayRate = 1.0f);
+
 private:
 	/// Particles to spawn when hit by bullets
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
@@ -56,6 +58,9 @@ private:
 
 	FTimerHandle HealthBarDisappearTimer;
 
+	/// Motage containing hit and death animations
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* HitMontage;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
