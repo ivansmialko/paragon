@@ -62,6 +62,11 @@ void AEnemy::ResetHitReactTimer()
 	bIsCanHitReact = true;
 }
 
+void AEnemy::StoreHitNumberWidget(UUserWidget* HitNumberWidget, FVector WidgetLocation)
+{
+	HitNumberWidgets.Add(HitNumberWidget, WidgetLocation);
+}
+
 // Called every frame
 void AEnemy::Tick(float DeltaTime)
 {
