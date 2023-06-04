@@ -29,6 +29,7 @@
 #include "Ammo.h"
 #include "ImpactPoint.h"
 #include "BulletHitInterface.h"
+#include "Enemy.h"
 
 
 
@@ -691,6 +692,14 @@ void AParagonCharacter::FireSendBullet()
 		if (auto BulletHitInterfaceActor = Cast<IBulletHitInterface>(ImpactPoint.Actor.Get()))
 		{
 			BulletHitInterfaceActor->BulletHit_Implementation(ImpactPoint);
+		}
+
+		if (auto EnemyActor = Cast<AEnemy>(ImpactPoint.Actor.Get()))
+		{
+			if (EquippedWeapon)
+			{
+				UGameplayStatics::ApplyDamage(EnemyActor, EquippedWeapon->GetMainDamage(), GetController(), this, UDamageType::StaticClass());
+			}
 		}
 	}
 

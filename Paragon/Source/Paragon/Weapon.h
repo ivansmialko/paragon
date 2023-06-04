@@ -85,6 +85,12 @@ struct FWeaponDataTableRow : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bIsAutomatic;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MainDamage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float HeadShotDamage;
 };
 
 UCLASS()
@@ -216,6 +222,14 @@ private:
 	/// True for auto gun fire
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"))
 	bool bAutomatic;
+
+	/// Amount of damage caused by a bullet to a body
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"))
+	float MainDamage;
+
+	/// Amount of damage caused by a bullet to a head
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"))
+	float HeadShotDamage;
 public:
 
 	/**
@@ -257,4 +271,6 @@ public:
 
 	void StartSlideTimer();
 
+	FORCEINLINE float GetMainDamage() const { return MainDamage; }
+	FORCEINLINE float GetHeadShotDamage() const { return HeadShotDamage; }
 };
