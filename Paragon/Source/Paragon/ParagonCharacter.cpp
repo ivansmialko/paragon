@@ -706,6 +706,7 @@ void AParagonCharacter::FireSendBullet()
 				}
 
 				UGameplayStatics::ApplyDamage(EnemyActor, CurrentDamage, GetController(), this, UDamageType::StaticClass());
+				EnemyActor->ShowHitNumber(CurrentDamage, ImpactPoint.Location);
 			}
 		}
 	}
