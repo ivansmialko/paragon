@@ -30,6 +30,8 @@ protected:
 	void Die();
 
 	void PlayHitMontage(FName Section, float PlayRate = 1.0f);
+	
+	void ResetHitReactTimer();
 
 private:
 	/// Particles to spawn when hit by bullets
@@ -61,6 +63,19 @@ private:
 	/// Motage containing hit and death animations
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* HitMontage;
+
+	/// Timer to wait before enemy can play hit animation again
+	FTimerHandle HitReactTimer;
+
+	/// True when enemy can play hit animation at this frame
+	bool bIsCanHitReact;
+
+	/// Min and max values to delay before enemy can play hit animation
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+	float HitReactDelayMin;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+	float HitReactDelayMax;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
