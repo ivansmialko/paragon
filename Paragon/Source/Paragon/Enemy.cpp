@@ -39,6 +39,14 @@ void AEnemy::ShowHealthBar_Implementation()
 void AEnemy::Die()
 {
 	HideHealthBar();
+
+	for (const auto& HitNumberPair : HitNumberWidgets)
+	{
+		HitNumberPair.Key->RemoveFromParent();
+	}
+
+	HitNumberWidgets.Empty();
+	Destroy();
 }
 
 void AEnemy::PlayHitMontage(FName Section, float PlayRate /*= 1.0f*/)
