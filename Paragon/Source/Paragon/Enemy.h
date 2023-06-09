@@ -20,26 +20,66 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	/// <summary>
+	/// Function to be called in the blueprint and in the code, when health bar needs to be showed
+	/// </summary>
 	UFUNCTION(BlueprintNativeEvent)
 	void ShowHealthBar();
 	void ShowHealthBar_Implementation();
 
+	/// <summary>
+	/// Function to be called in the blueprint when health bar needs to be hidden
+	/// </summary>
 	UFUNCTION(BlueprintImplementableEvent)
 	void HideHealthBar();
 
+	/// <summary>
+	/// Destroy the enemy
+	/// </summary>
 	void Die();
 
+	/// <summary>
+	/// Play animation of being hit by a player
+	/// </summary>
+	/// <param name="Section">Name of animation inside of AnimationMontage</param>
+	/// <param name="PlayRate">Speed of animation</param>
 	void PlayHitMontage(FName Section, float PlayRate = 1.0f);
 	
+	/// <summary>
+	/// Reset timer with timeout to the next play of "Hit" animation
+	/// </summary>
 	void ResetHitReactTimer();
 
+	/// <summary>
+	/// Add UI widget to list, to update it's location and then destroy later
+	/// </summary>
 	UFUNCTION(BlueprintCallable)
 	void StoreHitNumberWidget(UUserWidget* HitNumberWidget, FVector WidgetLocation);
 
+	/// <summary>
+	/// Destroy a particular UI widget with player-to-enemy damage
+	/// </summary>
 	UFUNCTION()
 	void DestroyHitNumber(UUserWidget* HitNumber);
 
+	/// <summary>
+	/// Update position of UI widgets with damage numbers
+	/// </summary>
 	void UpdateHitNumbers();
+
+	/// <summary>
+	/// Called when something overlaps with the agro sphere
+	/// </summary>
+	/// <param name="OverlappedComponent"></param>
+	/// <param name="OtherActor"></param>
+	/// <param name="OtherComponent"></param>
+	/// <param name="OtherBodyIndex"></param>
+	/// <param name="bFromSweep"></param>
+	/// <param name="SweepResult"></param>
+	UFUNCTION()
+	void OnOverlap_AgroSphere(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex,
+		bool bFromSweep, const FHitResult& SweepResult);
 
 private:
 	/// Particles to spawn when hit by bullets
@@ -92,6 +132,34 @@ private:
 	/// Time before HitNumber is removed from the screen
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
 	float HitNumberDestroyTime;
+
+	/// Behavior tree for the AI character
+	UPROPERTY(EditAnywhere, Category = "AI", meta = (AllowPrivateAccess = "true"))
+	class UBehaviorTree* BehaviorTree;
+
+	/// Point for the enemy to move to
+	UPROPERTY(EditAnywhere, Category = "AI", meta = (AllowPrivateAccess = "true", MakeEditWidget = "true"))
+	FVector PatrolPoint1;
+
+	/// Point for the enemy to move to
+	UPROPERTY(EditAnywhere, Category = "AI", meta = (AllowPrivateAccess = "true", MakeEditWidget = "true"))
+	FVector PatrolPoint2;
+
+	/// Reference to controller that possess this enemy
+	class AEnemyController* EnemyController;
+
+	/// Overlap sphere, for when the enemy becomes hostile
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
+	class USphereComponent* AgroSphere;
+
+	/// True when playing the "get hit" animation
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
+	bool bIsStunned;
+
+	/// Chance of being stunned
+	/// 0.0 - no stun chance, 1 - 100% stun chance
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
+	float StunChance;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -107,4 +175,9 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void ShowHitNumber(int Damage, FVector HitLocation, bool bIsHeadShot);
+
+	FORCEINLINE UBehaviorTree* GetBehaviorTree() const { return BehaviorTree; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetStunned(bool InIsStunned);
 };

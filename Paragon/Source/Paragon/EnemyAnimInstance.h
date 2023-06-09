@@ -14,4 +14,16 @@ class PARAGON_API UEnemyAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
 	
+private:
+
+	/// Lateral movement speed
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	float CurrentSpeed;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	class AEnemy* Enemy;
+public:
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateAnimationProperties(float DeltaTime);
 };
