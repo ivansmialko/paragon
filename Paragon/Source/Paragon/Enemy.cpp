@@ -36,6 +36,8 @@ void AEnemy::BeginPlay()
 	
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 
+	CurrentHealth = MaxHealth;
+
 	// Get AI Controller
 	EnemyController = Cast<AEnemyController>(GetController());
 	if (!EnemyController)
