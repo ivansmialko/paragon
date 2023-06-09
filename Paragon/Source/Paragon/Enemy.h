@@ -151,6 +151,15 @@ private:
 	/// Overlap sphere, for when the enemy becomes hostile
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
 	class USphereComponent* AgroSphere;
+
+	/// True when playing the "get hit" animation
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
+	bool bIsStunned;
+
+	/// Chance of being stunned
+	/// 0.0 - no stun chance, 1 - 100% stun chance
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
+	float StunChance;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -168,4 +177,7 @@ public:
 	void ShowHitNumber(int Damage, FVector HitLocation, bool bIsHeadShot);
 
 	FORCEINLINE UBehaviorTree* GetBehaviorTree() const { return BehaviorTree; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetStunned(bool InIsStunned);
 };

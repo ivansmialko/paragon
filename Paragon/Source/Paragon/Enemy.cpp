@@ -25,7 +25,9 @@ AEnemy::AEnemy() :
 	bIsCanHitReact(true),
 	HitReactDelayMin(0.5f),
 	HitReactDelayMax(3.f),
-	HitNumberDestroyTime(1.5f)
+	HitNumberDestroyTime(1.5f),
+	bIsStunned(false),
+	StunChance(0.5f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -177,6 +179,18 @@ float AEnemy::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEv
 	return DamageAmount;
 }
 
+void AEnemy::SetStunned(bool InIsStunned)
+{
+	if (!EnemyController)
+		return;
+
+	if (!EnemyController->GetBlackboardComponent())
+		return;
+
+	EnemyController->GetBlackboardComponent()->SetValueAsBool(TEXT("IsStunned"), InIsStunned);
+	bIsStunned = InIsStunned;
+}
+
 void AEnemy::BulletHit_Implementation(FHitResult HitResult)
 {
 	if (!ImpactSound)
@@ -190,6 +204,14 @@ void AEnemy::BulletHit_Implementation(FHitResult HitResult)
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, HitResult.Location, FRotator(0.f), true);
 
 	ShowHealthBar();
-	PlayHitMontage(FName("HitReact_Front"));
+
+	//Determinte whether bullet hit stuns
+	const float Stunned = FMath::FRandRange(0.f, 1.f);
+	if (Stunned <= StunChance)
+	{
+		// Stun the enemy
+		PlayHitMontage(FName("HitReact_Front"));
+		SetStunned(true);
+	}
 }
 
