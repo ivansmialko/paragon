@@ -8,11 +8,14 @@
 #include "Sound/SoundCue.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Blueprint/UserWidget.h"
-#include "EnemyController.h"
+#include "Components/SphereComponent.h"
 
 #include "BehaviorTree/BlackboardComponent.h"
 
 #include "DrawDebugHelpers.h"
+
+#include "EnemyController.h"
+#include "ParagonCharacter.h"
 
 // Sets default values
 AEnemy::AEnemy() :
@@ -27,6 +30,8 @@ AEnemy::AEnemy() :
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	AgroSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AgroSphere"));
+	AgroSphere->SetupAttachment(GetRootComponent());
 }
 
 // Called when the game starts or when spawned
@@ -37,6 +42,8 @@ void AEnemy::BeginPlay()
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 
 	CurrentHealth = MaxHealth;
+
+	AgroSphere->OnComponentBeginOverlap.AddDynamic(this, &AEnemy::OnOverlap_AgroSphere);
 
 	// Get AI Controller
 	EnemyController = Cast<AEnemyController>(GetController());
@@ -127,6 +134,18 @@ void AEnemy::UpdateHitNumbers()
 
 		HitPair.Key->SetPositionInViewport(ScreenPosition);
 	}
+}
+
+void AEnemy::OnOverlap_AgroSphere(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!OtherActor)
+		return;
+
+	AParagonCharacter* PlayerCharacter = Cast<AParagonCharacter>(OtherActor);
+	if (!PlayerCharacter)
+		return;
+
+	EnemyController->GetBlackboardComponent()->SetValueAsObject("ChaseTarget", PlayerCharacter);
 }
 
 // Called every frame
