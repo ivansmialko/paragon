@@ -99,7 +99,11 @@ private:
 
 	/// Point for the enemy to move to
 	UPROPERTY(EditAnywhere, Category = "AI", meta = (AllowPrivateAccess = "true", MakeEditWidget = "true"))
-	FVector PatrolPoint;
+	FVector PatrolPoint1;
+
+	/// Point for the enemy to move to
+	UPROPERTY(EditAnywhere, Category = "AI", meta = (AllowPrivateAccess = "true", MakeEditWidget = "true"))
+	FVector PatrolPoint2;
 
 	class AEnemyController* EnemyController;
 public:	
