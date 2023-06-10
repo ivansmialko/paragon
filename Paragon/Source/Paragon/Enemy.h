@@ -44,6 +44,13 @@ protected:
 	/// <param name="Section">Name of animation inside of AnimationMontage</param>
 	/// <param name="PlayRate">Speed of animation</param>
 	void PlayHitMontage(FName Section, float PlayRate = 1.0f);
+
+	/// <summary>
+	/// Play animation of enemy death
+	/// </summary>
+	/// <param name="Section">Name of animation inside of AnimationMontage</param>
+	/// <param name="PlayRate">Speed of animation</param>
+	void PlayDeathMontage(FName Section, float PlayRate = 1.0f);
 	
 	/// <summary>
 	/// Reset timer with timeout to the next play of "Hit" animation
@@ -70,16 +77,27 @@ protected:
 	/// <summary>
 	/// Called when something overlaps with the agro sphere
 	/// </summary>
-	/// <param name="OverlappedComponent"></param>
-	/// <param name="OtherActor"></param>
-	/// <param name="OtherComponent"></param>
-	/// <param name="OtherBodyIndex"></param>
-	/// <param name="bFromSweep"></param>
-	/// <param name="SweepResult"></param>
 	UFUNCTION()
-	void OnOverlap_AgroSphere(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	void OnOverlapBegin_AgroSphere(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex,
 		bool bFromSweep, const FHitResult& SweepResult);
+
+	/// <summary>
+	/// Called when player enters the attack range of enemy
+	/// </summary>
+	UFUNCTION()
+	void OnOverlapBegin_CombatRangeSphere(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex,
+		bool bFromSweep, const FHitResult& SweepResult);
+
+
+	/// <summary>
+	/// Called when player leaves the attack range of enemy
+	/// </summary>
+	void OnOverlapEnd_CombatRangeSphere(UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComponent,
+		int32 OtherBodyIndex);
 
 private:
 	/// Particles to spawn when hit by bullets
@@ -160,6 +178,13 @@ private:
 	/// 0.0 - no stun chance, 1 - 100% stun chance
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
 	float StunChance;
+
+	/// True when in attack range; time to attack!
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
+	bool bInAttackRange;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
+	USphereComponent* CombatRangeSphere;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
