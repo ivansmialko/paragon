@@ -107,10 +107,6 @@ protected:
 		UPrimitiveComponent* OtherComponent,
 		int32 OtherBodyIndex);
 
-	/// Animation montage that contains all attack animations
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* AttackMontage;
-
 	UFUNCTION(BlueprintPure)
 	FName GetAttackSectionName();
 
@@ -144,6 +140,10 @@ private:
 	/// Motage containing hit and death animations
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* HitMontage;
+
+	/// Animation montage that contains all attack animations
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* AttackMontage;
 
 	/// Timer to wait before enemy can play hit animation again
 	FTimerHandle HitReactTimer;

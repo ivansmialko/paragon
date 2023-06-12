@@ -9,6 +9,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/SphereComponent.h"
+#include "Components/CapsuleComponent.h"
 
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
@@ -50,6 +51,9 @@ void AEnemy::BeginPlay()
 	Super::BeginPlay();
 	
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+	//Ignore the camera for Mesh and Capsule
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 
 	CurrentHealth = MaxHealth;
 
