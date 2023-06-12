@@ -28,7 +28,11 @@ AEnemy::AEnemy() :
 	HitReactDelayMax(3.f),
 	HitNumberDestroyTime(1.5f),
 	bIsStunned(false),
-	StunChance(0.5f)
+	StunChance(0.5f),
+	AttackLFast(TEXT("Attack_L_Fast")),
+	AttackRFast(TEXT("Attack_R_Fast")),
+	AttackL(TEXT("Attack_L")),
+	AttackR(TEXT("Attack_R"))
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -124,6 +128,19 @@ void AEnemy::PlayDeathMontage(FName Section, float PlayRate /*= 1.0f*/)
 	AnimInstance->Montage_JumpToSection(Section, HitMontage);
 }
 
+void AEnemy::PlayAttackMontage(FName Section, float PlayRate /*= 1.0f*/)
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (!AnimInstance)
+		return;
+
+	if (!AttackMontage)
+		return;
+
+	AnimInstance->Montage_Play(AttackMontage, PlayRate);
+	AnimInstance->Montage_JumpToSection(Section, HitMontage);
+}
+
 void AEnemy::ResetHitReactTimer()
 {
 	bIsCanHitReact = true;
@@ -204,6 +221,35 @@ void AEnemy::OnOverlapEnd_CombatRangeSphere(UPrimitiveComponent* OverlappedCompo
 
 	bInAttackRange = false;
 	EnemyController->GetBlackboardComponent()->SetValueAsBool(TEXT("IsInAttackRange"), bInAttackRange);
+}
+
+FName AEnemy::GetAttackSectionName()
+{
+	const int32 Section{ FMath::RandRange(1, 4) };
+
+	switch (Section)
+	{
+	case 1:
+	{
+		return AttackLFast;
+	}
+	case 2:
+	{
+		return AttackRFast;
+	}
+	case 3:
+	{
+		return AttackL;
+	}
+	case 4:
+	{
+		return AttackR;
+	}
+	default:
+	{
+		return AttackR;
+	}
+	}
 }
 
 // Called every frame

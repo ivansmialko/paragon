@@ -51,6 +51,14 @@ protected:
 	/// <param name="Section">Name of animation inside of AnimationMontage</param>
 	/// <param name="PlayRate">Speed of animation</param>
 	void PlayDeathMontage(FName Section, float PlayRate = 1.0f);
+
+	/// <summary>
+	/// Play attack animation of the enemy to player
+	/// </summary>
+	/// <param name="Section">Name of animation inside of AnimationMontage</param>
+	/// <param name="PlayRate">Speed of animation</param>
+	UFUNCTION(BlueprintCallable)
+	void PlayAttackMontage(FName Section, float PlayRate = 1.0f);
 	
 	/// <summary>
 	/// Reset timer with timeout to the next play of "Hit" animation
@@ -98,6 +106,13 @@ protected:
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComponent,
 		int32 OtherBodyIndex);
+
+	/// Animation montage that contains all attack animations
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* AttackMontage;
+
+	UFUNCTION(BlueprintPure)
+	FName GetAttackSectionName();
 
 private:
 	/// Particles to spawn when hit by bullets
@@ -185,6 +200,14 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
 	USphereComponent* CombatRangeSphere;
+
+	/// <summary>
+	/// The four attack montage section names
+	/// </summary>
+	FName AttackLFast;
+	FName AttackRFast;
+	FName AttackL;
+	FName AttackR;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
