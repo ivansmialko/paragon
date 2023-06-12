@@ -9,8 +9,10 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/SphereComponent.h"
+#include "Components/CapsuleComponent.h"
 
 #include "BehaviorTree/BlackboardComponent.h"
+#include "BehaviorTree/BehaviorTreeComponent.h"
 
 #include "DrawDebugHelpers.h"
 
@@ -27,13 +29,20 @@ AEnemy::AEnemy() :
 	HitReactDelayMax(3.f),
 	HitNumberDestroyTime(1.5f),
 	bIsStunned(false),
-	StunChance(0.5f)
+	StunChance(0.5f),
+	AttackLFast(TEXT("Attack_L_Fast")),
+	AttackRFast(TEXT("Attack_R_Fast")),
+	AttackL(TEXT("Attack_L")),
+	AttackR(TEXT("Attack_R"))
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	AgroSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AgroSphere"));
 	AgroSphere->SetupAttachment(GetRootComponent());
+
+	CombatRangeSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CombatRange"));
+	CombatRangeSphere->SetupAttachment(GetRootComponent());
 }
 
 // Called when the game starts or when spawned
@@ -42,10 +51,15 @@ void AEnemy::BeginPlay()
 	Super::BeginPlay();
 	
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+	//Ignore the camera for Mesh and Capsule
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 
 	CurrentHealth = MaxHealth;
 
-	AgroSphere->OnComponentBeginOverlap.AddDynamic(this, &AEnemy::OnOverlap_AgroSphere);
+	AgroSphere->OnComponentBeginOverlap.AddDynamic(this, &AEnemy::OnOverlapBegin_AgroSphere);
+	CombatRangeSphere->OnComponentBeginOverlap.AddDynamic(this, &AEnemy::OnOverlapBegin_CombatRangeSphere);
+	CombatRangeSphere->OnComponentEndOverlap.AddDynamic(this, &AEnemy::OnOverlapEnd_CombatRangeSphere);
 
 	// Get AI Controller
 	EnemyController = Cast<AEnemyController>(GetController());
@@ -85,7 +99,9 @@ void AEnemy::Die()
 	}
 
 	HitNumberWidgets.Empty();
-	Destroy();
+	//Destroy();
+	PlayDeathMontage("Death_A");
+	EnemyController->GetBehaviorTreeComponent()->StopTree(EBTStopMode::Forced);
 }
 
 void AEnemy::PlayHitMontage(FName Section, float PlayRate /*= 1.0f*/)
@@ -104,6 +120,29 @@ void AEnemy::PlayHitMontage(FName Section, float PlayRate /*= 1.0f*/)
 	const float HitReactDelay{ FMath::FRandRange(HitReactDelayMin, HitReactDelayMax) };
 
 	GetWorldTimerManager().SetTimer(HitReactTimer, this, &AEnemy::ResetHitReactTimer, HitReactDelay);
+}
+
+void AEnemy::PlayDeathMontage(FName Section, float PlayRate /*= 1.0f*/)
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (!AnimInstance)
+		return;
+
+	AnimInstance->Montage_Play(HitMontage, PlayRate);
+	AnimInstance->Montage_JumpToSection(Section, HitMontage);
+}
+
+void AEnemy::PlayAttackMontage(FName Section, float PlayRate /*= 1.0f*/)
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (!AnimInstance)
+		return;
+
+	if (!AttackMontage)
+		return;
+
+	AnimInstance->Montage_Play(AttackMontage, PlayRate);
+	AnimInstance->Montage_JumpToSection(Section, HitMontage);
 }
 
 void AEnemy::ResetHitReactTimer()
@@ -138,7 +177,7 @@ void AEnemy::UpdateHitNumbers()
 	}
 }
 
-void AEnemy::OnOverlap_AgroSphere(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AEnemy::OnOverlapBegin_AgroSphere(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!OtherActor)
 		return;
@@ -148,6 +187,73 @@ void AEnemy::OnOverlap_AgroSphere(UPrimitiveComponent* OverlappedComponent, AAct
 		return;
 
 	EnemyController->GetBlackboardComponent()->SetValueAsObject("ChaseTarget", PlayerCharacter);
+}
+
+void AEnemy::OnOverlapBegin_CombatRangeSphere(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!OtherActor)
+		return;
+
+	AParagonCharacter* ParagonCharacter = Cast<AParagonCharacter>(OtherActor);
+	if (!ParagonCharacter)
+		return;
+
+	if (!EnemyController)
+		return;
+
+	if (!EnemyController->GetBlackboardComponent())
+		return;
+
+	bInAttackRange = true;
+	EnemyController->GetBlackboardComponent()->SetValueAsBool(TEXT("IsInAttackRange"), bInAttackRange);
+}
+
+void AEnemy::OnOverlapEnd_CombatRangeSphere(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex)
+{
+	if (!OtherActor)
+		return;
+
+	AParagonCharacter* ParagonCharacter = Cast<AParagonCharacter>(OtherActor);
+	if (!ParagonCharacter)
+		return;
+
+	if (!EnemyController)
+		return;
+
+	if (!EnemyController->GetBlackboardComponent())
+		return;
+
+	bInAttackRange = false;
+	EnemyController->GetBlackboardComponent()->SetValueAsBool(TEXT("IsInAttackRange"), bInAttackRange);
+}
+
+FName AEnemy::GetAttackSectionName()
+{
+	const int32 Section{ FMath::RandRange(1, 4) };
+
+	switch (Section)
+	{
+	case 1:
+	{
+		return AttackLFast;
+	}
+	case 2:
+	{
+		return AttackRFast;
+	}
+	case 3:
+	{
+		return AttackL;
+	}
+	case 4:
+	{
+		return AttackR;
+	}
+	default:
+	{
+		return AttackR;
+	}
+	}
 }
 
 // Called every frame
