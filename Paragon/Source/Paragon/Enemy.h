@@ -107,6 +107,22 @@ protected:
 		UPrimitiveComponent* OtherComponent,
 		int32 OtherBodyIndex);
 
+	/// <summary>
+	/// Called when enemy's left weapon contacts with player or any object
+	/// </summary>
+	UFUNCTION()
+	void OnOverlapBegin_LeftWeaponCollisionBox(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex,
+		bool bFromSweep, const FHitResult& SweepResult);
+
+	/// <summary>
+	/// Called when enemy's right weapon contacts with player or any object
+	/// </summary>
+	UFUNCTION()
+	void OnOverlapBegin_RightWeaponCollisionBox(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex,
+		bool bFromSweep, const FHitResult& SweepResult);
+
 	UFUNCTION(BlueprintPure)
 	FName GetAttackSectionName();
 
@@ -208,6 +224,14 @@ private:
 	FName AttackRFast;
 	FName AttackL;
 	FName AttackR;
+
+	/// Collision volume for the left weapon
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	class UBoxComponent* LeftWeaponCollisionBox;
+
+	/// Collision volume for the Right weapon
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	class UBoxComponent* RightWeaponCollisionBox;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
