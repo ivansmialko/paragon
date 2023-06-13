@@ -585,6 +585,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	float MaxHealth;
 
+	/// Sound made by a character when it gets melee atack
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	class USoundCue* MeeleImpactSound;
 public:
 
 	//Return CameraBoom subobject

@@ -155,6 +155,11 @@ float AParagonCharacter::TakeDamage(float DamageAmount, const FDamageEvent& Dama
 		CurrentHealth -= DamageAmount;
 	}
 
+	if (MeeleImpactSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), MeeleImpactSound, GetActorLocation());
+	}
+
 	return DamageAmount;
 }
 
