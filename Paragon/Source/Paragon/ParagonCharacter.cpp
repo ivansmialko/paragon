@@ -92,7 +92,9 @@ AParagonCharacter::AParagonCharacter() :
 	PickUpSoundResetTime(0.2f),
 	EquipSoundResetTime(0.2f),
 	//Icon animation property
-	CurrentHighlightedSlot(-1)
+	CurrentHighlightedSlot(-1),
+	CurrentHealth(100.f),
+	MaxHealth(100.f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -140,6 +142,20 @@ AParagonCharacter::AParagonCharacter() :
 	InterpPlace5->SetupAttachment(GetFollowCamera());
 	InterpPlace6 = CreateDefaultSubobject<USceneComponent>(TEXT("Interpolation place #6"));
 	InterpPlace6->SetupAttachment(GetFollowCamera());
+}
+
+float AParagonCharacter::TakeDamage(float DamageAmount, const FDamageEvent& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
+{
+	if (CurrentHealth - DamageAmount <= 0.f)
+	{
+		CurrentHealth = 0.f;
+	}
+	else
+	{
+		CurrentHealth -= DamageAmount;
+	}
+
+	return DamageAmount;
 }
 
 // Called when the game starts or when spawned

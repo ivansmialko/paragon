@@ -34,7 +34,8 @@ AEnemy::AEnemy() :
 	AttackLFast(TEXT("Attack_L_Fast")),
 	AttackRFast(TEXT("Attack_R_Fast")),
 	AttackL(TEXT("Attack_L")),
-	AttackR(TEXT("Attack_R"))
+	AttackR(TEXT("Attack_R")),
+	BaseDamage(20.f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -166,7 +167,7 @@ void AEnemy::PlayAttackMontage(FName Section, float PlayRate /*= 1.0f*/)
 		return;
 
 	AnimInstance->Montage_Play(AttackMontage, PlayRate);
-	AnimInstance->Montage_JumpToSection(Section, HitMontage);
+	AnimInstance->Montage_JumpToSection(Section, AttackMontage);
 }
 
 void AEnemy::ResetHitReactTimer()
@@ -253,12 +254,12 @@ void AEnemy::OnOverlapEnd_CombatRangeSphere(UPrimitiveComponent* OverlappedCompo
 
 void AEnemy::OnOverlapBegin_LeftWeaponCollisionBox(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-
+	AttackActor(OtherActor);
 }
 
 void AEnemy::OnOverlapBegin_RightWeaponCollisionBox(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-
+	AttackActor(OtherActor);
 }
 
 FName AEnemy::GetAttackSectionName()
@@ -320,6 +321,14 @@ void AEnemy::DeActivateRightWeapon()
 		return;
 
 	RightWeaponCollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+void AEnemy::AttackActor(AActor* TargetActor)
+{
+	if (!TargetActor)
+		return;
+
+	UGameplayStatics::ApplyDamage(TargetActor, BaseDamage, EnemyController, this, UDamageType::StaticClass());
 }
 
 // Called every frame

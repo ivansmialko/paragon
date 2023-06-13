@@ -44,6 +44,9 @@ public:
 	// Sets default values for this character's properties
 	AParagonCharacter();
 
+	/// Take combat damage
+	virtual float TakeDamage(float DamageAmount, const FDamageEvent& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -573,6 +576,15 @@ private:
 	/// The index for the currently highlighted slot
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
 	int32 CurrentHighlightedSlot;
+
+	/// Character's health
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	float CurrentHealth;
+
+	/// Character's max health
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	float MaxHealth;
+
 public:
 
 	//Return CameraBoom subobject
