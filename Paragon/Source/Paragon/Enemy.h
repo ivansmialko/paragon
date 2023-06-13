@@ -126,6 +126,19 @@ protected:
 	UFUNCTION(BlueprintPure)
 	FName GetAttackSectionName();
 
+	/// Activate/deactivate collision for weapon boxes
+	UFUNCTION(BlueprintCallable)
+	void ActivateLeftWeapon();
+
+	UFUNCTION(BlueprintCallable)
+	void DeActivateLeftWeapon();
+
+	UFUNCTION(BlueprintCallable)
+	void ActivateRightWeapon();
+
+	UFUNCTION(BlueprintCallable)
+	void DeActivateRightWeapon();
+
 private:
 	/// Particles to spawn when hit by bullets
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))

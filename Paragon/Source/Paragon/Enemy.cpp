@@ -290,6 +290,38 @@ FName AEnemy::GetAttackSectionName()
 	}
 }
 
+void AEnemy::ActivateLeftWeapon()
+{
+	if (!LeftWeaponCollisionBox)
+		return;
+
+	LeftWeaponCollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+}
+
+void AEnemy::DeActivateLeftWeapon()
+{
+	if (!LeftWeaponCollisionBox)
+		return;
+
+	LeftWeaponCollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+void AEnemy::ActivateRightWeapon()
+{
+	if (!RightWeaponCollisionBox)
+		return;
+
+	RightWeaponCollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+}
+
+void AEnemy::DeActivateRightWeapon()
+{
+	if (!RightWeaponCollisionBox)
+		return;
+
+	RightWeaponCollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
 // Called every frame
 void AEnemy::Tick(float DeltaTime)
 {
