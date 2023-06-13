@@ -10,6 +10,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/SphereComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/BoxComponent.h"
 
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
@@ -33,7 +34,8 @@ AEnemy::AEnemy() :
 	AttackLFast(TEXT("Attack_L_Fast")),
 	AttackRFast(TEXT("Attack_R_Fast")),
 	AttackL(TEXT("Attack_L")),
-	AttackR(TEXT("Attack_R"))
+	AttackR(TEXT("Attack_R")),
+	BaseDamage(20.f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -43,6 +45,16 @@ AEnemy::AEnemy() :
 
 	CombatRangeSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CombatRange"));
 	CombatRangeSphere->SetupAttachment(GetRootComponent());
+
+	if (!GetMesh())
+		return;
+
+	// Construct left and right weapon collision boxed
+	LeftWeaponCollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("LeftWeaponCollisionBox"));
+	LeftWeaponCollisionBox->SetupAttachment(GetMesh(), FName("left_weapon_bone"));
+
+	RightWeaponCollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("RightWeaponCollisionBox"));
+	RightWeaponCollisionBox->SetupAttachment(GetMesh(), FName("right_weapon_bone"));
 }
 
 // Called when the game starts or when spawned
@@ -81,6 +93,19 @@ void AEnemy::BeginPlay()
 	DrawDebugSphere(GetWorld(), WorldPatrolPoint, 25.f, 12, FColor::Red, true);
 
 	EnemyController->RunBehaviorTree(BehaviorTree);
+
+	LeftWeaponCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AEnemy::OnOverlapBegin_LeftWeaponCollisionBox);
+	RightWeaponCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AEnemy::OnOverlapBegin_RightWeaponCollisionBox);
+
+	LeftWeaponCollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	LeftWeaponCollisionBox->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
+	LeftWeaponCollisionBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	LeftWeaponCollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+
+	RightWeaponCollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	RightWeaponCollisionBox->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
+	RightWeaponCollisionBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	RightWeaponCollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 }
 
 void AEnemy::ShowHealthBar_Implementation()
@@ -142,7 +167,7 @@ void AEnemy::PlayAttackMontage(FName Section, float PlayRate /*= 1.0f*/)
 		return;
 
 	AnimInstance->Montage_Play(AttackMontage, PlayRate);
-	AnimInstance->Montage_JumpToSection(Section, HitMontage);
+	AnimInstance->Montage_JumpToSection(Section, AttackMontage);
 }
 
 void AEnemy::ResetHitReactTimer()
@@ -227,6 +252,16 @@ void AEnemy::OnOverlapEnd_CombatRangeSphere(UPrimitiveComponent* OverlappedCompo
 	EnemyController->GetBlackboardComponent()->SetValueAsBool(TEXT("IsInAttackRange"), bInAttackRange);
 }
 
+void AEnemy::OnOverlapBegin_LeftWeaponCollisionBox(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	AttackActor(OtherActor);
+}
+
+void AEnemy::OnOverlapBegin_RightWeaponCollisionBox(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	AttackActor(OtherActor);
+}
+
 FName AEnemy::GetAttackSectionName()
 {
 	const int32 Section{ FMath::RandRange(1, 4) };
@@ -254,6 +289,46 @@ FName AEnemy::GetAttackSectionName()
 		return AttackR;
 	}
 	}
+}
+
+void AEnemy::ActivateLeftWeapon()
+{
+	if (!LeftWeaponCollisionBox)
+		return;
+
+	LeftWeaponCollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+}
+
+void AEnemy::DeActivateLeftWeapon()
+{
+	if (!LeftWeaponCollisionBox)
+		return;
+
+	LeftWeaponCollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+void AEnemy::ActivateRightWeapon()
+{
+	if (!RightWeaponCollisionBox)
+		return;
+
+	RightWeaponCollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+}
+
+void AEnemy::DeActivateRightWeapon()
+{
+	if (!RightWeaponCollisionBox)
+		return;
+
+	RightWeaponCollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+void AEnemy::AttackActor(AActor* TargetActor)
+{
+	if (!TargetActor)
+		return;
+
+	UGameplayStatics::ApplyDamage(TargetActor, BaseDamage, EnemyController, this, UDamageType::StaticClass());
 }
 
 // Called every frame
