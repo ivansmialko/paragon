@@ -15,6 +15,8 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 
+#include "Engine/SkeletalMeshSocket.h"
+
 #include "DrawDebugHelpers.h"
 
 #include "EnemyController.h"
@@ -35,7 +37,9 @@ AEnemy::AEnemy() :
 	AttackRFast(TEXT("Attack_R_Fast")),
 	AttackL(TEXT("Attack_L")),
 	AttackR(TEXT("Attack_R")),
-	BaseDamage(20.f)
+	BaseDamage(20.f),
+	LeftWeaponSocketName(TEXT("FX_Trail_L_01")),
+	RightWeaponSocketName(TEXT("FX_Trail_R_01"))
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -255,11 +259,23 @@ void AEnemy::OnOverlapEnd_CombatRangeSphere(UPrimitiveComponent* OverlappedCompo
 void AEnemy::OnOverlapBegin_LeftWeaponCollisionBox(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	AttackActor(OtherActor);
+
+	AParagonCharacter* PlayerCharacter = Cast<AParagonCharacter>(OtherActor);
+	if (!PlayerCharacter)
+		return;
+
+	SpawnBloodParticles(LeftWeaponSocketName, PlayerCharacter);
 }
 
 void AEnemy::OnOverlapBegin_RightWeaponCollisionBox(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	AttackActor(OtherActor);
+
+	AParagonCharacter* PlayerCharacter = Cast<AParagonCharacter>(OtherActor);
+	if (!PlayerCharacter)
+		return;
+
+	SpawnBloodParticles(RightWeaponSocketName, PlayerCharacter);
 }
 
 FName AEnemy::GetAttackSectionName()
@@ -321,6 +337,17 @@ void AEnemy::DeActivateRightWeapon()
 		return;
 
 	RightWeaponCollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+
+void AEnemy::SpawnBloodParticles(FName WeaponSocketName, AParagonCharacter* PlayerCharacter)
+{
+	const USkeletalMeshSocket* TipSocket = GetMesh()->GetSocketByName(WeaponSocketName);
+	if (TipSocket && PlayerCharacter->GetBloodParticles())
+	{
+		const FTransform SocketTransform{ TipSocket->GetSocketTransform(GetMesh()) };
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), PlayerCharacter->GetBloodParticles(), SocketTransform);
+	}
 }
 
 void AEnemy::AttackActor(AActor* TargetActor)

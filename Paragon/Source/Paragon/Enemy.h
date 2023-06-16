@@ -140,6 +140,13 @@ protected:
 	void DeActivateRightWeapon();
 
 	void AttackActor(AActor* TargetActor);
+
+	/// <summary>
+	/// Spawns a particle system at the contact location of enemy's melee and other player
+	/// </summary>
+	/// <param name="WeaponSocketName">Weapon socket name</param>
+	/// <param name="PlayerCharacter">Player character</param>
+	void SpawnBloodParticles(FName WeaponSocketName, class AParagonCharacter* PlayerCharacter);
 private:
 	/// Particles to spawn when hit by bullets
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
@@ -250,6 +257,14 @@ private:
 	/// Base damage the enemy can deal
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	float BaseDamage;
+
+	/// Socket for the left enemy's weapon
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	FName LeftWeaponSocketName;
+
+	/// Socket for the right enemy's weapon
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	FName RightWeaponSocketName;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

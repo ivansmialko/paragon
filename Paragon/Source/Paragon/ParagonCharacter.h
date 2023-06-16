@@ -588,6 +588,10 @@ private:
 	/// Sound made by a character when it gets melee atack
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	class USoundCue* MeeleImpactSound;
+
+	/// Blood particles by melee hit
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FX", meta = (AllowPrivateAccess = "true"))
+	UParticleSystem* BloodParticles;
 public:
 
 	//Return CameraBoom subobject
@@ -658,4 +662,6 @@ public:
 
 	void HighlightInventorySlot();
 	void UnHighlightInventorySlot();
+
+	FORCEINLINE UParticleSystem* GetBloodParticles() const { return BloodParticles; }
 };
