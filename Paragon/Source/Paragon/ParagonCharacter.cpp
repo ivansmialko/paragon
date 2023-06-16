@@ -1325,7 +1325,7 @@ void AParagonCharacter::EndStun()
 
 	if (bIsAimingButtonPressed)
 	{
-		StartAiming();
+		StartAiming(); 
 	}
 }
 
