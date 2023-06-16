@@ -265,6 +265,7 @@ void AEnemy::OnOverlapBegin_LeftWeaponCollisionBox(UPrimitiveComponent* Overlapp
 		return;
 
 	SpawnBloodParticles(LeftWeaponSocketName, PlayerCharacter);
+	StunCharacter(PlayerCharacter);
 }
 
 void AEnemy::OnOverlapBegin_RightWeaponCollisionBox(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -276,6 +277,7 @@ void AEnemy::OnOverlapBegin_RightWeaponCollisionBox(UPrimitiveComponent* Overlap
 		return;
 
 	SpawnBloodParticles(RightWeaponSocketName, PlayerCharacter);
+	StunCharacter(PlayerCharacter);
 }
 
 FName AEnemy::GetAttackSectionName()
@@ -347,6 +349,18 @@ void AEnemy::SpawnBloodParticles(FName WeaponSocketName, AParagonCharacter* Play
 	{
 		const FTransform SocketTransform{ TipSocket->GetSocketTransform(GetMesh()) };
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), PlayerCharacter->GetBloodParticles(), SocketTransform);
+	}
+}
+
+void AEnemy::StunCharacter(AParagonCharacter* Victim)
+{
+	if (!Victim)
+		return;
+
+	const float CurrentStunChance = FMath::FRandRange(0, 1);
+	if (StunChance < Victim->GetStunChance())
+	{
+		Victim->Stun();
 	}
 }
 

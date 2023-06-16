@@ -147,6 +147,13 @@ protected:
 	/// <param name="WeaponSocketName">Weapon socket name</param>
 	/// <param name="PlayerCharacter">Player character</param>
 	void SpawnBloodParticles(FName WeaponSocketName, class AParagonCharacter* PlayerCharacter);
+
+	/// <summary>
+	/// Attempt to stunt a character
+	/// </summary>
+	/// <param name="Victim">Target player</param>
+	void StunCharacter(AParagonCharacter* Victim);
+
 private:
 	/// Particles to spawn when hit by bullets
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))

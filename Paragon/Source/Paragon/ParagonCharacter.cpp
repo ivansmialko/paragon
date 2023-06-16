@@ -94,7 +94,8 @@ AParagonCharacter::AParagonCharacter() :
 	//Icon animation property
 	CurrentHighlightedSlot(-1),
 	CurrentHealth(100.f),
-	MaxHealth(100.f)
+	MaxHealth(100.f),
+	StunChance(0.25f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -1349,6 +1350,17 @@ void AParagonCharacter::UnHighlightInventorySlot()
 	HighlightIconDelegate.Broadcast(CurrentHighlightedSlot, false);
 
 	CurrentHighlightedSlot = -1;
+}
+
+void AParagonCharacter::Stun()
+{
+	CurrentCombatState = ECombatState::ECS_Stunned;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (!AnimInstance || !HitReactMontage)
+		return;
+
+	AnimInstance->Montage_Play(HitReactMontage);
 }
 
 void AParagonCharacter::FireBeginEvent()
