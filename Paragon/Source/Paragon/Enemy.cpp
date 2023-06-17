@@ -15,6 +15,8 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 
+#include "Engine/SkeletalMeshSocket.h"
+
 #include "DrawDebugHelpers.h"
 
 #include "EnemyController.h"
@@ -35,7 +37,11 @@ AEnemy::AEnemy() :
 	AttackRFast(TEXT("Attack_R_Fast")),
 	AttackL(TEXT("Attack_L")),
 	AttackR(TEXT("Attack_R")),
-	BaseDamage(20.f)
+	BaseDamage(20.f),
+	LeftWeaponSocketName(TEXT("FX_Trail_L_01")),
+	RightWeaponSocketName(TEXT("FX_Trail_R_01")),
+	bIsCanAttack(true),
+	AttackWaitTime(1.f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -70,6 +76,7 @@ void AEnemy::BeginPlay()
 	CurrentHealth = MaxHealth;
 
 	AgroSphere->OnComponentBeginOverlap.AddDynamic(this, &AEnemy::OnOverlapBegin_AgroSphere);
+
 	CombatRangeSphere->OnComponentBeginOverlap.AddDynamic(this, &AEnemy::OnOverlapBegin_CombatRangeSphere);
 	CombatRangeSphere->OnComponentEndOverlap.AddDynamic(this, &AEnemy::OnOverlapEnd_CombatRangeSphere);
 
@@ -106,6 +113,8 @@ void AEnemy::BeginPlay()
 	RightWeaponCollisionBox->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
 	RightWeaponCollisionBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	RightWeaponCollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+
+	EnemyController->GetBlackboardComponent()->SetValueAsBool("IsCanAttack", bIsCanAttack);
 }
 
 void AEnemy::ShowHealthBar_Implementation()
@@ -168,6 +177,14 @@ void AEnemy::PlayAttackMontage(FName Section, float PlayRate /*= 1.0f*/)
 
 	AnimInstance->Montage_Play(AttackMontage, PlayRate);
 	AnimInstance->Montage_JumpToSection(Section, AttackMontage);
+
+	bIsCanAttack = false;
+	GetWorldTimerManager().SetTimer(AttackWaitTimer, this, &AEnemy::ResetIsCanAttack, AttackWaitTime);
+
+	if (!EnemyController)
+		return;
+
+	EnemyController->GetBlackboardComponent()->SetValueAsBool(TEXT("IsCanAttack"), bIsCanAttack);
 }
 
 void AEnemy::ResetHitReactTimer()
@@ -216,6 +233,8 @@ void AEnemy::OnOverlapBegin_AgroSphere(UPrimitiveComponent* OverlappedComponent,
 
 void AEnemy::OnOverlapBegin_CombatRangeSphere(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Begin overlap"));
+
 	if (!OtherActor)
 		return;
 
@@ -235,6 +254,8 @@ void AEnemy::OnOverlapBegin_CombatRangeSphere(UPrimitiveComponent* OverlappedCom
 
 void AEnemy::OnOverlapEnd_CombatRangeSphere(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex)
 {
+	UE_LOG(LogTemp, Warning, TEXT("OverlapEnd"));
+
 	if (!OtherActor)
 		return;
 
@@ -255,11 +276,25 @@ void AEnemy::OnOverlapEnd_CombatRangeSphere(UPrimitiveComponent* OverlappedCompo
 void AEnemy::OnOverlapBegin_LeftWeaponCollisionBox(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	AttackActor(OtherActor);
+
+	AParagonCharacter* PlayerCharacter = Cast<AParagonCharacter>(OtherActor);
+	if (!PlayerCharacter)
+		return;
+
+	SpawnBloodParticles(LeftWeaponSocketName, PlayerCharacter);
+	StunCharacter(PlayerCharacter);
 }
 
 void AEnemy::OnOverlapBegin_RightWeaponCollisionBox(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	AttackActor(OtherActor);
+
+	AParagonCharacter* PlayerCharacter = Cast<AParagonCharacter>(OtherActor);
+	if (!PlayerCharacter)
+		return;
+
+	SpawnBloodParticles(RightWeaponSocketName, PlayerCharacter);
+	StunCharacter(PlayerCharacter);
 }
 
 FName AEnemy::GetAttackSectionName()
@@ -321,6 +356,39 @@ void AEnemy::DeActivateRightWeapon()
 		return;
 
 	RightWeaponCollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+
+void AEnemy::SpawnBloodParticles(FName WeaponSocketName, AParagonCharacter* PlayerCharacter)
+{
+	const USkeletalMeshSocket* TipSocket = GetMesh()->GetSocketByName(WeaponSocketName);
+	if (TipSocket && PlayerCharacter->GetBloodParticles())
+	{
+		const FTransform SocketTransform{ TipSocket->GetSocketTransform(GetMesh()) };
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), PlayerCharacter->GetBloodParticles(), SocketTransform);
+	}
+}
+
+void AEnemy::StunCharacter(AParagonCharacter* Victim)
+{
+	if (!Victim)	
+		return;
+
+	const float CurrentStunChance = FMath::FRandRange(0.f, 1.f);
+	if (CurrentStunChance < Victim->GetStunChance())
+	{
+		Victim->Stun();
+	}
+}
+
+void AEnemy::ResetIsCanAttack()
+{
+	bIsCanAttack = true;
+
+	if (!EnemyController)
+		return;
+
+	EnemyController->GetBlackboardComponent()->SetValueAsBool("IsCanAttack", bIsCanAttack);
 }
 
 void AEnemy::AttackActor(AActor* TargetActor)

@@ -94,7 +94,8 @@ AParagonCharacter::AParagonCharacter() :
 	//Icon animation property
 	CurrentHighlightedSlot(-1),
 	CurrentHealth(100.f),
-	MaxHealth(100.f)
+	MaxHealth(100.f),
+	StunChance(0.25f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -341,7 +342,8 @@ void AParagonCharacter::SetAimingButtonPressed()
 	bIsAimingButtonPressed = true;
 
 	if (CurrentCombatState != ECombatState::ECS_ReloadingState
-		&& CurrentCombatState != ECombatState::ECS_Equipping)
+		&& CurrentCombatState != ECombatState::ECS_Equipping
+		&& CurrentCombatState != ECombatState::ECS_Stunned)
 	{
 		StartAiming();
 	}
@@ -458,6 +460,9 @@ void AParagonCharacter::StartFireTimer()
 
 void AParagonCharacter::FireTimerCallback()
 {
+	if (CurrentCombatState == ECombatState::ECS_Stunned)
+		return;
+
 	if (!EquippedWeapon)
 		return;
 
@@ -810,6 +815,9 @@ void AParagonCharacter::ReloadWeapon()
 
 void AParagonCharacter::FinishReloading()
 {
+	if (CurrentCombatState == ECombatState::ECS_Stunned)
+		return;
+
 	//Update the combat state
 	CurrentCombatState = ECombatState::ECS_Unoccupied;
 
@@ -852,6 +860,9 @@ void AParagonCharacter::FinishReloading()
 
 void AParagonCharacter::FinishEquipping()
 {
+	if (CurrentCombatState == ECombatState::ECS_Stunned)
+		return;
+
 	CurrentCombatState = ECombatState::ECS_Unoccupied;
 	if (bIsAimingButtonPressed)
 	{
@@ -1238,7 +1249,9 @@ void AParagonCharacter::Key5Pressed()
 
 void AParagonCharacter::ExchangeInventoryItems(int32 CurrentItemIndex, int32 NewItemIndex)
 {
-	if (!(CurrentCombatState == ECombatState::ECS_Unoccupied || CurrentCombatState == ECombatState::ECS_Equipping))
+	if (!(CurrentCombatState == ECombatState::ECS_Unoccupied
+		|| CurrentCombatState == ECombatState::ECS_Equipping
+		|| CurrentCombatState == ECombatState::ECS_Stunned))
 		return;
 
 	if (CurrentItemIndex == NewItemIndex)
@@ -1307,6 +1320,16 @@ EPhysicalSurface AParagonCharacter::GetSurfaceType()
 	return UPhysicalMaterial::DetermineSurfaceType(HitResult.PhysMaterial.Get());
 }
 
+void AParagonCharacter::EndStun()
+{
+	CurrentCombatState = ECombatState::ECS_Unoccupied;
+
+	if (bIsAimingButtonPressed)
+	{
+		StartAiming(); 
+	}
+}
+
 void AParagonCharacter::HighlightInventorySlot()
 {
 	const int32 EmptySlotIndex = GetEmptyInventorySlotIndex();
@@ -1327,6 +1350,17 @@ void AParagonCharacter::UnHighlightInventorySlot()
 	HighlightIconDelegate.Broadcast(CurrentHighlightedSlot, false);
 
 	CurrentHighlightedSlot = -1;
+}
+
+void AParagonCharacter::Stun()
+{
+	CurrentCombatState = ECombatState::ECS_Stunned;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (!AnimInstance || !HitReactMontage)
+		return;
+
+	AnimInstance->Montage_Play(HitReactMontage);
 }
 
 void AParagonCharacter::FireBeginEvent()

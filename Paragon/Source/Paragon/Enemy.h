@@ -102,6 +102,7 @@ protected:
 	/// <summary>
 	/// Called when player leaves the attack range of enemy
 	/// </summary>
+	UFUNCTION()
 	void OnOverlapEnd_CombatRangeSphere(UPrimitiveComponent* OverlappedComponent,
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComponent,
@@ -140,6 +141,25 @@ protected:
 	void DeActivateRightWeapon();
 
 	void AttackActor(AActor* TargetActor);
+
+	/// <summary>
+	/// Spawns a particle system at the contact location of enemy's melee and other player
+	/// </summary>
+	/// <param name="WeaponSocketName">Weapon socket name</param>
+	/// <param name="PlayerCharacter">Player character</param>
+	void SpawnBloodParticles(FName WeaponSocketName, class AParagonCharacter* PlayerCharacter);
+
+	/// <summary>
+	/// Attempt to stunt a character
+	/// </summary>
+	/// <param name="Victim">Target player</param>
+	void StunCharacter(AParagonCharacter* Victim);
+
+	/// <summary>
+	/// Resets the "bIsCanAttack" value. Called by AttackWaitTimer
+	/// </summary>
+	void ResetIsCanAttack();
+
 private:
 	/// Particles to spawn when hit by bullets
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
@@ -250,6 +270,25 @@ private:
 	/// Base damage the enemy can deal
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	float BaseDamage;
+
+	/// Socket for the left enemy's weapon
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	FName LeftWeaponSocketName;
+
+	/// Socket for the right enemy's weapon
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	FName RightWeaponSocketName;
+
+	/// Is can attack at current frame
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	bool bIsCanAttack;
+
+	/// Timer to wait for another attack
+	FTimerHandle AttackWaitTimer;
+
+	/// Minimum wait time between attacks
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	float AttackWaitTime;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
