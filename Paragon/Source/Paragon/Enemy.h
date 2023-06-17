@@ -155,6 +155,11 @@ protected:
 	/// <param name="Victim">Target player</param>
 	void StunCharacter(AParagonCharacter* Victim);
 
+	/// <summary>
+	/// Resets the "bIsCanAttack" value. Called by AttackWaitTimer
+	/// </summary>
+	void ResetIsCanAttack();
+
 private:
 	/// Particles to spawn when hit by bullets
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
@@ -273,6 +278,17 @@ private:
 	/// Socket for the right enemy's weapon
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	FName RightWeaponSocketName;
+
+	/// Is can attack at current frame
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	bool bIsCanAttack;
+
+	/// Timer to wait for another attack
+	FTimerHandle AttackWaitTimer;
+
+	/// Minimum wait time between attacks
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	float AttackWaitTime;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

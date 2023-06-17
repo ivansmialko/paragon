@@ -39,7 +39,9 @@ AEnemy::AEnemy() :
 	AttackR(TEXT("Attack_R")),
 	BaseDamage(20.f),
 	LeftWeaponSocketName(TEXT("FX_Trail_L_01")),
-	RightWeaponSocketName(TEXT("FX_Trail_R_01"))
+	RightWeaponSocketName(TEXT("FX_Trail_R_01")),
+	bIsCanAttack(true),
+	AttackWaitTime(1.f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -111,6 +113,8 @@ void AEnemy::BeginPlay()
 	RightWeaponCollisionBox->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
 	RightWeaponCollisionBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	RightWeaponCollisionBox->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+
+	EnemyController->GetBlackboardComponent()->SetValueAsBool("IsCanAttack", bIsCanAttack);
 }
 
 void AEnemy::ShowHealthBar_Implementation()
@@ -173,6 +177,14 @@ void AEnemy::PlayAttackMontage(FName Section, float PlayRate /*= 1.0f*/)
 
 	AnimInstance->Montage_Play(AttackMontage, PlayRate);
 	AnimInstance->Montage_JumpToSection(Section, AttackMontage);
+
+	bIsCanAttack = false;
+	GetWorldTimerManager().SetTimer(AttackWaitTimer, this, &AEnemy::ResetIsCanAttack, AttackWaitTime);
+
+	if (!EnemyController)
+		return;
+
+	EnemyController->GetBlackboardComponent()->SetValueAsBool(TEXT("IsCanAttack"), bIsCanAttack);
 }
 
 void AEnemy::ResetHitReactTimer()
@@ -367,6 +379,16 @@ void AEnemy::StunCharacter(AParagonCharacter* Victim)
 	{
 		Victim->Stun();
 	}
+}
+
+void AEnemy::ResetIsCanAttack()
+{
+	bIsCanAttack = true;
+
+	if (!EnemyController)
+		return;
+
+	EnemyController->GetBlackboardComponent()->SetValueAsBool("IsCanAttack", bIsCanAttack);
 }
 
 void AEnemy::AttackActor(AActor* TargetActor)
