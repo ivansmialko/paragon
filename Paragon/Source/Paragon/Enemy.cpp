@@ -74,6 +74,7 @@ void AEnemy::BeginPlay()
 	CurrentHealth = MaxHealth;
 
 	AgroSphere->OnComponentBeginOverlap.AddDynamic(this, &AEnemy::OnOverlapBegin_AgroSphere);
+
 	CombatRangeSphere->OnComponentBeginOverlap.AddDynamic(this, &AEnemy::OnOverlapBegin_CombatRangeSphere);
 	CombatRangeSphere->OnComponentEndOverlap.AddDynamic(this, &AEnemy::OnOverlapEnd_CombatRangeSphere);
 
@@ -220,6 +221,8 @@ void AEnemy::OnOverlapBegin_AgroSphere(UPrimitiveComponent* OverlappedComponent,
 
 void AEnemy::OnOverlapBegin_CombatRangeSphere(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Begin overlap"));
+
 	if (!OtherActor)
 		return;
 
@@ -239,6 +242,8 @@ void AEnemy::OnOverlapBegin_CombatRangeSphere(UPrimitiveComponent* OverlappedCom
 
 void AEnemy::OnOverlapEnd_CombatRangeSphere(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex)
 {
+	UE_LOG(LogTemp, Warning, TEXT("OverlapEnd"));
+
 	if (!OtherActor)
 		return;
 

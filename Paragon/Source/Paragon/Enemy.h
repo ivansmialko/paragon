@@ -102,6 +102,7 @@ protected:
 	/// <summary>
 	/// Called when player leaves the attack range of enemy
 	/// </summary>
+	UFUNCTION()
 	void OnOverlapEnd_CombatRangeSphere(UPrimitiveComponent* OverlappedComponent,
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComponent,
