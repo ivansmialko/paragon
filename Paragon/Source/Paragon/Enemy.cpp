@@ -354,11 +354,11 @@ void AEnemy::SpawnBloodParticles(FName WeaponSocketName, AParagonCharacter* Play
 
 void AEnemy::StunCharacter(AParagonCharacter* Victim)
 {
-	if (!Victim)
+	if (!Victim)	
 		return;
 
-	const float CurrentStunChance = FMath::FRandRange(0, 1);
-	if (StunChance < Victim->GetStunChance())
+	const float CurrentStunChance = FMath::FRandRange(0.f, 1.f);
+	if (CurrentStunChance < Victim->GetStunChance())
 	{
 		Victim->Stun();
 	}
