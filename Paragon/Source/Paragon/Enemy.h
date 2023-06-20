@@ -143,6 +143,12 @@ protected:
 	void AttackActor(AActor* TargetActor);
 
 	/// <summary>
+	/// Called from animation notifier when death animation ends to destroy enemy
+	/// </summary>
+	UFUNCTION(BlueprintCallable)
+	void FinishDeath();
+
+	/// <summary>
 	/// Spawns a particle system at the contact location of enemy's melee and other player
 	/// </summary>
 	/// <param name="WeaponSocketName">Weapon socket name</param>
@@ -293,6 +299,8 @@ private:
 	/// Minimum wait time between attacks
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	float AttackWaitTime;
+
+	bool bIsDying;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

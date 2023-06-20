@@ -41,7 +41,8 @@ AEnemy::AEnemy() :
 	LeftWeaponSocketName(TEXT("FX_Trail_L_01")),
 	RightWeaponSocketName(TEXT("FX_Trail_R_01")),
 	bIsCanAttack(true),
-	AttackWaitTime(1.f)
+	AttackWaitTime(1.f),
+	bIsDying(false)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -125,6 +126,11 @@ void AEnemy::ShowHealthBar_Implementation()
 
 void AEnemy::Die()
 {
+	if (bIsDying)
+		return;
+
+	bIsDying = true;
+
 	HideHealthBar();
 
 	for (const auto& HitNumberPair : HitNumberWidgets)
@@ -403,6 +409,11 @@ void AEnemy::AttackActor(AActor* TargetActor)
 		return;
 
 	UGameplayStatics::ApplyDamage(TargetActor, BaseDamage, EnemyController, this, UDamageType::StaticClass());
+}
+
+void AEnemy::FinishDeath()
+{
+	Destroy();
 }
 
 // Called every frame
