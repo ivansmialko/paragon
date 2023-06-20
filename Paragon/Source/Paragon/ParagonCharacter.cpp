@@ -150,6 +150,7 @@ float AParagonCharacter::TakeDamage(float DamageAmount, const FDamageEvent& Dama
 	if (CurrentHealth - DamageAmount <= 0.f)
 	{
 		CurrentHealth = 0.f;
+		Die();
 	}
 	else
 	{
@@ -1171,6 +1172,29 @@ void AParagonCharacter::SpawnImpactPoint(const FVector& ImpactPlace)
 	ImpactPoint->SetLifeSpan(0.5f);
 }
 
+void AParagonCharacter::Die()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (!AnimInstance)
+		return;
+
+	if (!DeathMontage)
+		return;
+
+	AnimInstance->Montage_Play(DeathMontage);
+}
+
+void AParagonCharacter::FinishDeath()
+{
+	GetMesh()->bPauseAnims = true;
+
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	if (!PlayerController)
+		return;
+
+	DisableInput(PlayerController);
+}
+
 void AParagonCharacter::ResetPickUpSoundTimer()
 {
 	bIsShouldPlayPickUpSound = true;
@@ -1354,6 +1378,9 @@ void AParagonCharacter::UnHighlightInventorySlot()
 
 void AParagonCharacter::Stun()
 {
+	if (CurrentHealth <= 0.f)
+		return;
+
 	CurrentCombatState = ECombatState::ECS_Stunned;
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();

@@ -298,6 +298,12 @@ public:
 	void InitializeInterpLocations();
 
 	void SpawnImpactPoint(const FVector& ImpactPlace);
+
+	void Die();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishDeath();
+
 private:
 
 	// Camera boom positioning the camera behind the character
@@ -599,6 +605,10 @@ private:
 	/// Hit react anim montage when the character is stunned
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* HitReactMontage;
+
+	/// Death animation played when character dies
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* DeathMontage;
 
 	/// Chance of getting stunned when hit by the enemy
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
