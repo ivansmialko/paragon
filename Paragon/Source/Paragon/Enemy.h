@@ -195,6 +195,10 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* AttackMontage;
 
+	/// Animation montage that contains all death animations
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* DeathMontage;
+
 	/// Timer to wait before enemy can play hit animation again
 	FTimerHandle HitReactTimer;
 

@@ -162,8 +162,14 @@ void AEnemy::PlayDeathMontage(FName Section, float PlayRate /*= 1.0f*/)
 	if (!AnimInstance)
 		return;
 
-	AnimInstance->Montage_Play(HitMontage, PlayRate);
-	AnimInstance->Montage_JumpToSection(Section, HitMontage);
+	AnimInstance->Montage_Play(DeathMontage, PlayRate);
+	AnimInstance->Montage_JumpToSection(Section, DeathMontage);
+
+	if (!EnemyController)
+		return;
+
+	EnemyController->GetBlackboardComponent()->SetValueAsBool(FName("IsDead"), true);
+	EnemyController->StopMovement();
 }
 
 void AEnemy::PlayAttackMontage(FName Section, float PlayRate /*= 1.0f*/)
