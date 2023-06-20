@@ -474,6 +474,9 @@ void AEnemy::BulletHit_Implementation(FHitResult HitResult)
 
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, HitResult.Location, FRotator(0.f), true);
 
+	if (bIsDying)
+		return;
+
 	ShowHealthBar();
 
 	//Determinte whether bullet hit stuns
