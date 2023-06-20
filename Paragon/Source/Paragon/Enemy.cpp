@@ -42,7 +42,8 @@ AEnemy::AEnemy() :
 	RightWeaponSocketName(TEXT("FX_Trail_R_01")),
 	bIsCanAttack(true),
 	AttackWaitTime(1.f),
-	bIsDying(false)
+	bIsDying(false),
+	DestroyTime(3.f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -412,6 +413,15 @@ void AEnemy::AttackActor(AActor* TargetActor)
 }
 
 void AEnemy::FinishDeath()
+{
+	GetMesh()->bPauseAnims = true;
+
+	GetWorldTimerManager().SetTimer(DestroyTimer, this, &AEnemy::DestroyEnemy, DestroyTime);
+
+	Destroy();
+}
+
+void AEnemy::DestroyEnemy()
 {
 	Destroy();
 }

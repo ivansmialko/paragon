@@ -143,12 +143,6 @@ protected:
 	void AttackActor(AActor* TargetActor);
 
 	/// <summary>
-	/// Called from animation notifier when death animation ends to destroy enemy
-	/// </summary>
-	UFUNCTION(BlueprintCallable)
-	void FinishDeath();
-
-	/// <summary>
 	/// Spawns a particle system at the contact location of enemy's melee and other player
 	/// </summary>
 	/// <param name="WeaponSocketName">Weapon socket name</param>
@@ -165,6 +159,18 @@ protected:
 	/// Resets the "bIsCanAttack" value. Called by AttackWaitTimer
 	/// </summary>
 	void ResetIsCanAttack();
+
+	/// <summary>
+	/// Called from animation notifier when death animation ends to destroy enemy
+	/// </summary>
+	UFUNCTION(BlueprintCallable)
+	void FinishDeath();
+
+	/// <summary>
+	/// Destroy enemy object
+	/// </summary>
+	UFUNCTION()
+	void DestroyEnemy();
 
 private:
 	/// Particles to spawn when hit by bullets
@@ -300,7 +306,16 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	float AttackWaitTime;
 
+	/// True when dying animation is playing
 	bool bIsDying;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	FTimerHandle DestroyTimer;
+
+	/// Time after death until destroy
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	float DestroyTime;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
