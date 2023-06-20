@@ -7,6 +7,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -30,6 +31,7 @@
 #include "ImpactPoint.h"
 #include "BulletHitInterface.h"
 #include "Enemy.h"
+#include "EnemyController.h"
 
 
 
@@ -150,6 +152,14 @@ float AParagonCharacter::TakeDamage(float DamageAmount, const FDamageEvent& Dama
 	if (CurrentHealth - DamageAmount <= 0.f)
 	{
 		CurrentHealth = 0.f;
+
+		auto EnemyController = Cast<AEnemyController>(EventInstigator);
+		if (EnemyController)
+		{
+			EnemyController->GetBlackboardComponent()->SetValueAsBool(FName("IsCharacterDead"), true);
+		}
+
+		Die();
 	}
 	else
 	{
@@ -1171,6 +1181,29 @@ void AParagonCharacter::SpawnImpactPoint(const FVector& ImpactPlace)
 	ImpactPoint->SetLifeSpan(0.5f);
 }
 
+void AParagonCharacter::Die()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (!AnimInstance)
+		return;
+
+	if (!DeathMontage)
+		return;
+
+	AnimInstance->Montage_Play(DeathMontage);
+}
+
+void AParagonCharacter::FinishDeath()
+{
+	GetMesh()->bPauseAnims = true;
+
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	if (!PlayerController)
+		return;
+
+	DisableInput(PlayerController);
+}
+
 void AParagonCharacter::ResetPickUpSoundTimer()
 {
 	bIsShouldPlayPickUpSound = true;
@@ -1354,6 +1387,9 @@ void AParagonCharacter::UnHighlightInventorySlot()
 
 void AParagonCharacter::Stun()
 {
+	if (CurrentHealth <= 0.f)
+		return;
+
 	CurrentCombatState = ECombatState::ECS_Stunned;
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();

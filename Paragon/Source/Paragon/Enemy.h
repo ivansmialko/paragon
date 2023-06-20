@@ -160,6 +160,18 @@ protected:
 	/// </summary>
 	void ResetIsCanAttack();
 
+	/// <summary>
+	/// Called from animation notifier when death animation ends to destroy enemy
+	/// </summary>
+	UFUNCTION(BlueprintCallable)
+	void FinishDeath();
+
+	/// <summary>
+	/// Destroy enemy object
+	/// </summary>
+	UFUNCTION()
+	void DestroyEnemy();
+
 private:
 	/// Particles to spawn when hit by bullets
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
@@ -194,6 +206,10 @@ private:
 	/// Animation montage that contains all attack animations
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* AttackMontage;
+
+	/// Animation montage that contains all death animations
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* DeathMontage;
 
 	/// Timer to wait before enemy can play hit animation again
 	FTimerHandle HitReactTimer;
@@ -289,6 +305,17 @@ private:
 	/// Minimum wait time between attacks
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	float AttackWaitTime;
+
+	/// True when dying animation is playing
+	bool bIsDying;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	FTimerHandle DestroyTimer;
+
+	/// Time after death until destroy
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	float DestroyTime;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

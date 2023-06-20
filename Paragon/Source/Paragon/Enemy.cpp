@@ -41,7 +41,9 @@ AEnemy::AEnemy() :
 	LeftWeaponSocketName(TEXT("FX_Trail_L_01")),
 	RightWeaponSocketName(TEXT("FX_Trail_R_01")),
 	bIsCanAttack(true),
-	AttackWaitTime(1.f)
+	AttackWaitTime(1.f),
+	bIsDying(false),
+	DestroyTime(3.f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -125,6 +127,11 @@ void AEnemy::ShowHealthBar_Implementation()
 
 void AEnemy::Die()
 {
+	if (bIsDying)
+		return;
+
+	bIsDying = true;
+
 	HideHealthBar();
 
 	for (const auto& HitNumberPair : HitNumberWidgets)
@@ -162,8 +169,14 @@ void AEnemy::PlayDeathMontage(FName Section, float PlayRate /*= 1.0f*/)
 	if (!AnimInstance)
 		return;
 
-	AnimInstance->Montage_Play(HitMontage, PlayRate);
-	AnimInstance->Montage_JumpToSection(Section, HitMontage);
+	AnimInstance->Montage_Play(DeathMontage, PlayRate);
+	AnimInstance->Montage_JumpToSection(Section, DeathMontage);
+
+	if (!EnemyController)
+		return;
+
+	EnemyController->GetBlackboardComponent()->SetValueAsBool(FName("IsDead"), true);
+	EnemyController->StopMovement();
 }
 
 void AEnemy::PlayAttackMontage(FName Section, float PlayRate /*= 1.0f*/)
@@ -399,6 +412,20 @@ void AEnemy::AttackActor(AActor* TargetActor)
 	UGameplayStatics::ApplyDamage(TargetActor, BaseDamage, EnemyController, this, UDamageType::StaticClass());
 }
 
+void AEnemy::FinishDeath()
+{
+	GetMesh()->bPauseAnims = true;
+
+	GetWorldTimerManager().SetTimer(DestroyTimer, this, &AEnemy::DestroyEnemy, DestroyTime);
+
+	Destroy();
+}
+
+void AEnemy::DestroyEnemy()
+{
+	Destroy();
+}
+
 // Called every frame
 void AEnemy::Tick(float DeltaTime)
 {
@@ -423,6 +450,11 @@ float AEnemy::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEv
 	else
 	{
 		CurrentHealth -= DamageAmount;
+	}
+
+	if (EnemyController)
+	{
+		EnemyController->GetBlackboardComponent()->SetValueAsObject(TEXT("ChaseTarget"), DamageCauser);
 	}
 
 	return DamageAmount;
@@ -451,6 +483,9 @@ void AEnemy::BulletHit_Implementation(FHitResult HitResult)
 		return;
 
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, HitResult.Location, FRotator(0.f), true);
+
+	if (bIsDying)
+		return;
 
 	ShowHealthBar();
 
