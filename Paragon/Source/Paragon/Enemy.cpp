@@ -425,6 +425,11 @@ float AEnemy::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEv
 		CurrentHealth -= DamageAmount;
 	}
 
+	if (EnemyController)
+	{
+		EnemyController->GetBlackboardComponent()->SetValueAsObject(TEXT("ChaseTarget"), DamageCauser);
+	}
+
 	return DamageAmount;
 }
 
