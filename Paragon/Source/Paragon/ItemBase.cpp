@@ -18,10 +18,10 @@ AItemBase::AItemBase() :
 	ItemRarity(EItemRarity::EIR_Common),
 	ItemState(EItemState::EIS_PickUp),
 	//Item interp variables
-	InterpTimerDuration(0.7f),
 	ItemInterpStartLocation(FVector(0.f)),
 	CameraTargetLocation(FVector(0.f)),
 	bIsInterping(false),
+	InterpTimerDuration(0.7f),
 	ItemInterpX(0.f),
 	ItemInterpY(0.f),
 	InterpInitalYawOffset(0.f),
