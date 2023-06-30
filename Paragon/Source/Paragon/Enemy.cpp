@@ -417,8 +417,6 @@ void AEnemy::FinishDeath()
 	GetMesh()->bPauseAnims = true;
 
 	GetWorldTimerManager().SetTimer(DestroyTimer, this, &AEnemy::DestroyEnemy, DestroyTime);
-
-	Destroy();
 }
 
 void AEnemy::DestroyEnemy()
