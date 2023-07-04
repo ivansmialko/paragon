@@ -241,6 +241,9 @@ void AEnemy::OnOverlapBegin_AgroSphere(UPrimitiveComponent* OverlappedComponent,
 	if (!PlayerCharacter)
 		return;
 
+	if (!EnemyController || !EnemyController->GetBlackboardComponent())
+		return;
+
 	EnemyController->GetBlackboardComponent()->SetValueAsObject("ChaseTarget", PlayerCharacter);
 }
 
@@ -438,39 +441,7 @@ void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 }
 
-float AEnemy::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
-{
-	if ((CurrentHealth - DamageAmount) < 0.0f)
-	{
-		CurrentHealth = 0.f;
-		Die();
-	}
-	else
-	{
-		CurrentHealth -= DamageAmount;
-	}
-
-	if (EnemyController)
-	{
-		EnemyController->GetBlackboardComponent()->SetValueAsObject(TEXT("ChaseTarget"), DamageCauser);
-	}
-
-	return DamageAmount;
-}
-
-void AEnemy::SetStunned(bool InIsStunned)
-{
-	if (!EnemyController)
-		return;
-
-	if (!EnemyController->GetBlackboardComponent())
-		return;
-
-	EnemyController->GetBlackboardComponent()->SetValueAsBool(TEXT("IsStunned"), InIsStunned);
-	bIsStunned = InIsStunned;
-}
-
-void AEnemy::BulletHit_Implementation(FHitResult HitResult)
+void AEnemy::BulletHit_Implementation(FHitResult HitResult, AActor* Shooter, AController* DamageInstigator)
 {
 	if (!ImpactSound)
 		return;
@@ -497,3 +468,43 @@ void AEnemy::BulletHit_Implementation(FHitResult HitResult)
 	}
 }
 
+float AEnemy::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	if ((CurrentHealth - DamageAmount) < 0.0f)
+	{
+		CurrentHealth = 0.f;
+		Die();
+	}
+	else
+	{
+		CurrentHealth -= DamageAmount;
+	}
+
+	//Determinte whether bullet hit stuns
+	const float Stunned = FMath::FRandRange(0.f, 1.f);
+	if (Stunned <= StunChance)
+	{
+		// Stun the enemy
+		PlayHitMontage(FName("HitReact_Front"));
+		SetStunned(true);
+	}
+
+	if (EnemyController)
+	{
+		EnemyController->GetBlackboardComponent()->SetValueAsObject(TEXT("ChaseTarget"), DamageCauser);
+	}
+
+	return DamageAmount;
+}
+
+void AEnemy::SetStunned(bool InIsStunned)
+{
+	if (!EnemyController)
+		return;
+
+	if (!EnemyController->GetBlackboardComponent())
+		return;
+
+	EnemyController->GetBlackboardComponent()->SetValueAsBool(TEXT("IsStunned"), InIsStunned);
+	bIsStunned = InIsStunned;
+}

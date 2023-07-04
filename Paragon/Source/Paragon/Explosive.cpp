@@ -5,13 +5,22 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 #include "Particles/ParticleSystem.h"
+#include "Components/SphereComponent.h"
+#include "GameFramework/Character.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
-AExplosive::AExplosive()
+AExplosive::AExplosive():
+	ExplosionDamage(100.f)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	ExplosiveMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ExplosiveMesh"));
+	SetRootComponent(ExplosiveMesh);
+
+	DamageSphere = CreateDefaultSubobject<USphereComponent>(TEXT("OverlapSphere"));
+	DamageSphere->SetupAttachment(GetRootComponent());
 }
 
 // Called when the game starts or when spawned
@@ -28,7 +37,7 @@ void AExplosive::Tick(float DeltaTime)
 
 }
 
-void AExplosive::BulletHit_Implementation(FHitResult HitResult)
+void AExplosive::BulletHit_Implementation(FHitResult HitResult, AActor* Shooter, AController* DamageInstigator)
 {
 	if (!ExplosionSound)
 		return;
@@ -40,7 +49,13 @@ void AExplosive::BulletHit_Implementation(FHitResult HitResult)
 
 	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplosionParticles, HitResult.Location);
 
-	//TODO: Apply explosive damage
+	//Apply explosive damage
+	TArray<AActor*> OverlapingActors;
+	GetOverlappingActors(OverlapingActors, ACharacter::StaticClass());
+	for (const auto& Actor : OverlapingActors)
+	{
+		UGameplayStatics::ApplyDamage(Actor, ExplosionDamage, DamageInstigator, Shooter, UDamageType::StaticClass());
+	}
 
 	Destroy();
 }

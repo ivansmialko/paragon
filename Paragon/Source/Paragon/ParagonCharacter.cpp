@@ -727,7 +727,7 @@ void AParagonCharacter::FireSendBullet()
 	{
 		if (auto BulletHitInterfaceActor = Cast<IBulletHitInterface>(ImpactPoint.Actor.Get()))
 		{
-			BulletHitInterfaceActor->BulletHit_Implementation(ImpactPoint);
+			BulletHitInterfaceActor->BulletHit_Implementation(ImpactPoint, this, GetController());
 		}
 
 		if (auto EnemyActor = Cast<AEnemy>(ImpactPoint.Actor.Get()))
